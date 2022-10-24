@@ -1,0 +1,573 @@
+\documentclass[10pt,xcolor={dvipsnames}]{beamer}
+
+\usepackage[beamer]{myBelovedPackage}
+\setbeamersize{text margin left = 2mm, text margin right = 2mm} 
+
+\loadbiblatex[style = authoryear]{references.bib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ===== Title Page ===== %
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Antoine \textrm{Caillebotte}}
+
+\author[Antoine \textrm{Caillebotte}] % (optional, for multiple authors)
+{\bf{Antoine \textrm{Caillebotte}\inst{1}} \texorpdfstring{\\}{and}
+E.Kuhn\inst{1}\and S.Lemler\inst{2}\and E.Marchadier \inst{3}\and J.Legrand \inst{3} }
+
+\institute[Université Paris-Saclay, INRAE]
+{
+  \inst{1} Université Paris-Saclay, INRAE, MaIAGE, \inst{2} CentraleSupélec MICS \and \inst{3} INRAE Génétique Quantitative et Evolution Le Moulon
+}
+
+\title{Réunion de rentrée}
+\date{14 octobre 2022}
+\titlegraphic{\includegraphics[width=3cm]{logos/S4P_logo.png} \hfill
+              \includegraphics[width=3cm]{logos/Paris_saclay_white.jpg} \hfill
+              \includegraphics[width=3cm]{logos/INRAE.jpg} }
+              
+\logo{\includegraphics[height=5mm]{logos/sigle_INRAE.jpg}}
+
+
+\input{notation}
+\renewcommand{\varobs}{Y,T}
+\renewcommand{\varlat}[1][]{\vphi#1, b#1, \alpha#1}
+% === Couleur === %
+\setmyColor[ blue = {0, 0, 255},
+             violet = {163, 73, 164},
+             fg = {0, 163, 166}]
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\inrae}[1]{\tc{inraeCyan}{\bf{#1}}}
+\newcommand{\unknown}[1]{ \bf{\tc{inraeRed}{#1}}}
+\newcommand{\known}[1]{ \tc{BrickRed}{#1}}
+
+\begin{document}
+\printtitlepage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% == == == Notation == == == %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Notation}
+    \begin{minipage}{0.5\textwidth}
+        \begin{center}
+            \includestandalone[width=.99\textwidth]{tikz_field}
+        \end{center}
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+        We denote by :
+        \begin{itemize}
+            \item $\maxgeno$ : number of genotype total,
+            \item $\maxlines$ : number of lines,
+            \item $\maxobs$ : number of repeated measures of the attacks.
+        \end{itemize}
+    \end{minipage}
+\end{frame}
+
+\section{Modeling}
+\beamertoc[0.65]{currentsection, sectionstyle = show}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ====== Explication sur le modèle de survie ====== %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Cox Model}
+\begin{frame}{Cox Model}
+    \textit{Reference :} \cite{cox_regression_1972}
+    
+    \centering
+    \begin{minipage}{0.8\textwidth}
+        \begin{block}{Hazard function $\hazard$}
+            $$\tcb{\hazard(t)} = \lim_{dt\to 0} \frac {\mbb P (t < \tcr T \leq t + dt | \tcr T > t)}{dt}$$
+        \end{block}
+    \end{minipage}
+
+    \begin{minipage}{0.8\textwidth}
+        \begin{block}{}
+            Regression model that links the survival time to explanatory variables.
+            
+            The Hazard function is given by :
+            
+            $$\hazard(T | \tcg{U})  = \hazard_0(T) \exp(\tcb\beta^T \tcg{U} )$$
+        
+            \begin{itemize}
+                \item $T$ survival time 
+                \item $\hazard_0$ : baseline hazard
+                \item $\tcg {U}$ : covariate for an individual
+                \item $\tcb \beta$ : regression parameter
+            \end{itemize}
+        
+        \end{block}
+    \end{minipage}
+\end{frame}
+
+
+
+\begin{frame}{Modeling the flowering date}
+    \begin{itemize}
+        \item For any genotype $\foranygeno$ and line $\foranylines$
+        
+        \tc{inraeCyan}{Hazard that the flowering occurs} at $T_\genolines$ :
+        
+    \hspace{5cm} \tikzm{Tend}{\tc{BrickRed}{Flowering date}}
+    \vspace{0.1cm}
+    
+        $$\hazard(\tikzm{T}T_\genolines | \tikzm{U}{\tcg{U_\meltgenolines}})  = \tc{cyan}{\hazard_0}(T_\genolines) \exp(\tcb\beta^T \tcg{U_\meltgenolines} )$$
+        
+        \vspace{0.2cm}
+        \hspace{5.5cm} \tikzm{Uend}{\tcg{Covariates}}
+    
+        \begin{itemize}
+            \item $T_\genolines\in \setr$ : time event of interest \known{observed},
+            \item $\tc{cyan}{\hazard_0}$ baseline hazard \unknown{unknown},
+            %
+            \item $\tcg{U_\meltgenolines\in\setr^p}$ : $\ell$-th line of the $\geno$-th genotype's covariates \known{known},
+            \item $\tcb{\beta \in \setr^p}$ : fixed effect \unknown{unknown}.
+        \end{itemize}
+        
+        \begin{center}
+            \bf{Model parameters :} \fbox{$\tc{inraeRed}{\theta = (\hazard_0, \beta)}$}
+        \end{center}
+        
+        \item \bf{Objective :} model the proportion of attack and link it into this model!
+    
+    \end{itemize}
+    
+    \begin{tikzpicture}[overlay, remember picture]
+        \draw[->, draw = black, thick]([shift={(0, 1mm)}]T.north) to[out=90,  in=180] ([shift={(-1mm,0)}]Tend.west);
+        \draw[->, draw = black, thick]([shift={(0,-1mm)}]U.south) to[out=270, in=180] ([shift={(-1mm,0)}]Uend.west);
+    \end{tikzpicture}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ====== Modèle non linear a effet mixte ====== %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\iffalse
+\begin{frame}{Logistic function}
+
+\begin{minipage}{0.45\textwidth}
+    
+            \myGraphics[width = 0.9\textwidth]{images/logistic}{Logistic function}
+            
+\end{minipage}\begin{minipage}{0.45\textwidth}
+
+    Let $\vphi = (\vphi_1, \vphi_2, \vphi_3)\in\setr^3$
+
+    $$\nonlinearfct : t,\vphi \mapsto \frac{\vphi_1}{1 + \exp\left(\frac{\vphi_2-t}{\vphi_3}\right)}.$$
+
+    Where : 
+    \begin{itemize}
+        \item $\vphi_1$ is the curve's asymptotic value,
+        \item $\vphi_2$ is the value of the sigmoid midpoint,
+        \item $\vphi_3  >0 $ is the logistic growth rate.
+    \end{itemize}
+    
+\end{minipage}
+\end{frame}
+\fi
+
+\subsection{Non-linear mixed-effects model}
+\begin{frame}{Non-linear mixed-effects model (NLME)}
+    \textit{Reference :} \cite{davidian_nonlinear_1995}
+    
+    \begin{itemize}
+        \item \tc{inraeCyan}{Longitudinal data} modeling :
+        For any $\foranygeno$, $\foranylines$ and $\foranyobs$
+        
+        \hspace{6cm} \tikzm{phiend}{\tcg{behavior based on genetics}}
+        \vspace{0.2cm}
+        $$Y_\genolinesobs =  \nonlinearfct(t_\obs ;  \tikzm{phi}{\tcg{\vphi_\geno}}) + \epsilon_\genolinesobs ~;~ \epsilon_\genolinesobs \under\sim{i.i.d.} \mc N(0, \sigma^2)$$
+        
+        \begin{itemize}
+            \item $Y_\genolinesobs \in\setr$ : \obs-th response of the \geno-th individual at time $t_\obs$ \known{observation},
+            \item $\tcg{\vphi_\geno\in \setr^3}$ : random group effects \unknown{not observed},
+            %
+            \item $\nonlinearfct$ : nonlinear function for $\tcg\vphi$.
+        \end{itemize}
+        
+        \item \tc{inraeCyan}{Inter-individual} variation :
+        $$\tcg{\vphi_\geno} = \tco{\mu} + \xi_\geno ~;~\xi_\geno \under\sim{i.i.d.} \mc N(0, \Omega)$$
+        
+        \begin{itemize}
+            \item $\tco{\mu} = (\mu_1, \mu_2,\mu_3) \in \setr^3$, $\Omega = diag(\omega_1^2, \omega_2^2, \omega_3^2)\in\mc M_3(\setr)$:  \unknown{unknown},
+        \end{itemize}
+        
+        \begin{center}
+            \bf{Model parameters :} \fbox{$\tc{inraeRed}{\theta = (\sigma^2, \mu, \Omega)}$}
+        \end{center}
+    \end{itemize}
+    
+    \begin{tikzpicture}[overlay, remember picture]
+        \draw[->, draw = black, thick]([shift={(0, 1mm)}]phi.north) to[out=90,  in=180] ([shift={(-1mm,0)}]phiend.west);
+    \end{tikzpicture}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ===== Joint modeling ====%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Joint modeling}
+\begin{frame}{Joint Model : NLME and Survival model}
+    \textit{Reference :} \cite{rizopoulos_joint_2012}
+    \begin{itemize}
+        \item Combining the two models using the link function $\tcr \nonlinearfct$. %We assume that \underline{the proportion of attack at the time of flowering} \underline{is explanatory of it}.
+        
+        
+    For any $\foranygeno$, $\foranylines$ and $\foranyobs$
+    
+    \begin{equation}\label{jointmodel}
+        \stackeq[lll]{ 
+            \hazard_\genolines (T_\genolines| U_\meltgenolines) 
+                = \hazard_0(T_\genolines) \exp(\beta ^T U_\meltgenolines + \tcb \alpha \tcr \nonlinearfct(T_\genolines;\vphi_\geno) )
+        \\  Y_\genolinesobs = \nonlinearfct(t_\obs ; \vphi_\geno )  + \epsilon_\genolinesobs 
+        \\  \vphi_\geno \under\sim{i.i.d.} \mc N(\mu, \Omega) \quad  ;  \quad  \epsilon_\genolinesobs \under\sim{i.i.d.} \mc N(0,\sigma^2) }
+    \end{equation}
+        
+        where $\tcb \alpha$ quantifies the association between the flowering and the attack proportion.
+        
+        \begin{center}
+            \bf{Model parameters :} \fbox{$\tc{inraeRed}{\theta = (\sigma^2, \mu, \Omega, h_0, \beta, \alpha)}$}
+        \end{center}
+    \end{itemize}
+\end{frame}
+
+
+\iffalse
+\begin{frame}{Baseline hazard definition}
+    
+     A previous internship has highlighted the well-fitting of the data with a Weibull law for the baseline hazard : $\hazard_0: t \mapsto b a^{-b} t^{b-1}$
+     
+         \myGraphics[width = .6\textwidth]{images/weibull.png}{Weibull density example}
+        
+\end{frame} \fi
+
+\begin{frame}{Hierachical model}
+
+    \begin{center}
+        \includestandalone[width=.8\textwidth]{tikz_model}
+    \end{center}
+
+
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% == == == Methodoly == == == %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Inference in the joint Model}
+\beamertoc{currentsection, sectionstyle = show}
+
+
+
+\begin{frame}{General estimate in latent variable joint model}
+        
+    \begin{equation}
+        \stackeq[lll]{ 
+            \hazard_\genolines (T_\genolines| U_\meltgenolines) 
+                = \hazard_0(T_\genolines) \exp(\beta ^T \tcg{U_\meltgenolines} + \tcb \alpha \tcr \nonlinearfct(T_\genolines;\vphi_\geno) )
+        \\  Y_\genolinesobs = \nonlinearfct(t_\obs ; \vphi_\geno )  + \epsilon_\genolinesobs  }
+    \end{equation}
+        
+    \begin{center}
+        With : \fbox{$\tc{inraeRed}{\theta = (\sigma^2, \mu, \Omega, h_0^{(a,b)}, \beta, \alpha)}$}
+    \end{center}
+    
+    \inrae{Marginal likelihood written with complete likelihood}
+        
+        $$\Lmarg (\theta|T,Y) = \int \Lcomp(\theta| T, Y; \vphi) d\vphi$$    
+        \tc{inraeRed}{Recall : $\vphi$ is not observed}
+    
+    
+    \inrae{Maximum likelihood Estimator (MLE)}
+        \begin{equation}\label{MLE}
+            \shabox{$\hat\theta = \argmax_{\theta\in\Theta} \Lmarg(\theta | T, Y) $}
+        \end{equation}
+\end{frame}
+
+
+\begin{frame}{Hierachical model adapted for the exponential family}
+    \begin{center}
+        \includestandalone[width=.8\textwidth]{tikz_model_SAEM}
+    \end{center}
+\end{frame}
+
+
+\subsection{Expectation Maximisation algorithm}
+\begin{frame}{SAEM - Exponential family}
+
+    If we can write : $\log \Lcomp(\theta ; \varlat; \varobs) = \sca{\Phi(\theta); S(\varlat)}-\psi(\theta)$
+
+
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\tco{\theta_0}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item \inrae{S-Step (Simulation)}, simulate $\tcg{\varlat[^{(k)}]}$ according to $p(\varlat|\varobs, \theta_k)$
+            \item \inrae{A-Step (stochastic Approximation)}, evaluate :
+            $$\tcb{S_{k+1}} = (1-u_k) \tco{S_k} + u_k S(\tcg{\varlat[^{(k)}]})$$
+            
+            \item \inrae{M-Step (Maximisation)}, compute :
+            $$\tcr{\theta_{k+1}} = \argmax_{\tcb\theta \in \Theta} \left\{ \sca{\Phi(\tcb\theta);\tcb{S_{k+1}}}-\psi(\tcb\theta) \right\}$$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \theta = \tcr{\theta_K}$ with $K$ large enough
+    \end{itemize}
+    
+    {\centering\scriptsize where $(u_k)_{k\in \setn}$ such that $\som k1\infty u_k = \infty$ and $\som k1\infty u_k^2 < \infty$ }
+\end{frame}
+
+\subsection{Penalized SAEM algorithm}
+\begin{frame}{Estimate in joint model with covariates in high dimension}
+        
+    \begin{center}
+        We separate the parameters in small dimension and those in large dimension : \fbox{$\tc{inraeRed}{\theta = (\ub{\sigma^2, \mu, \Omega, b,\alpha}_{=\nu}, \beta)} = \tcr{\mathbf{(\nu,\beta)}}$}
+    \end{center}
+    
+    \inrae{Variable selection} $pen(\theta) = pen(\beta) = \regularization \norm{\beta}_1 = \regularization \som i1p \abs{\beta_i}$
+    
+    
+    %\inrae{Direct maximization of the MLE } $\hat  \nu = \argmax_{\nu\in \setr^d}\Lmarg(\nu, \hat\beta|\varobs)$
+    
+    \inrae{Penalized Estimator} 
+        \shabox{$(\hat \nu, \hat\beta) = \argmax_{\beta\in \setr^p,\nu\in\setr^d}\left\{ \Lmarg( \nu, \beta|\varobs) - pen(\beta)\right\}$}
+        
+\end{frame}
+
+\begin{frame}{Penalized SAEM algorithm}
+
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\tco{\theta_0 = (\nu_0, \beta_0)}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item \inrae{S-Step (Simulation)}, simulate $\tcg{\varlat[^{(k)}]}$ according to $p(\varlat|\varobs, \nu_k, \beta_k)$
+            \item \inrae{A-Step (stochastic Approximation)}, evaluate :
+            $$\tcb{S_{k+1}} = (1-u_k) \tco{S_k} + u_k S(\tcg{\varlat[^{(k)}]})$$
+            
+            \item \inrae{M-Step (Maximisation)}, compute :
+            $$\tcr{\nu_{k+1}} = \argmax_{\tcb\nu \in \setr^d} \left\{ \sca{\Phi(\tcb\nu, \tco{\beta_k});\tcb{S_{k+1}}}-\psi(\tcb\nu, \tco{\beta_k}) \right\}$$
+            $$\tcr{\beta_{k+1}} = \argmax_{\tcb\beta \in \setr^p} \left\{ \sca{\Phi(\tcr{\nu_{k+1}},\tcb\beta);\tcb{S_{k+1}}}-\psi(\tcr{\nu_{k+1}},\tcb\beta)  - pen(\tcb\beta)\right\}$$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \theta = (\tcr{\nu_K, \beta_K})$ with $K$ large enough
+    \end{itemize}
+    
+    {\centering\scriptsize where $(u_k)_{k\in \setn}$ such that $\som k1\infty u_k = \infty$ and $\som k1\infty u_k^2 < \infty$ }
+\end{frame}
+
+
+
+
+
+
+
+
+
+%=============================================================%
+%=============================================================%
+%=============================================================%
+\subsection{Proximal Gradient Descent}
+\newcommand{\fgrad}{Q}
+
+\begin{frame}{Proximal Gradient Descent}
+
+    Gradient descent on the function $\fgrad : \beta \mapsto \sca{\Phi(\nu_{k+1},\beta);S_{k+1}}-\psi(\nu_{k+1},\beta)$
+    \\ Where $\nu_{k+1}$ is the current value in the SAEM algorithm
+    \\ and $S_{k+1}$ is the stochastic approximation of the sufficient statistic
+        
+    \textit{Reference :} \cite{achab_learning_2017}
+    
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\beta_0 \in \setr^p$, the last compute of $\nu_{k+1}$ and $S_{k+1}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item  $\omega_k \leftarrow \beta_{k-1} - \gamma_k \frac{\nabla \fgrad(\beta_{k-1})}{\norm{\nabla \fgrad(\beta_{k-1})}_2}$ 
+        
+            \item $\beta_k \leftarrow prox_{\gamma_kpen}(\omega_k)$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \beta = \tco{\beta_K}$ with $K$ large enough
+    \end{itemize}
+        
+    {\centering\scriptsize where $(\gamma_k)_{k\in \setn}$ is a sequence of steps and $\gamma_k > 0$ }
+    
+\end{frame}
+
+\begin{frame}{Proximal Operator}
+    
+    
+The proximal operator (\cite{moreau_fonctions_1962}; \cite{rockafellar_monotone_1976}) defined below extends the gradient descents to non-differentiable functions. 
+
+
+\inrae{Proximal operator}
+    $$prox_{pen}(\beta) = \argmin_{\beta'\in\setr^p} \left(pen(\beta') + \frac 12\norm{\beta-\beta'}_2^2 \right)$$
+
+
+With Lasso penalization, $pen(\beta) = \norm{\beta}_1$, we have the explicit form :
+
+\begin{equation}
+    \shabox{$(prox_{lasso}(\beta))_i = \stackeq[lr]{0 &\text{if } \abs{\beta_i}<\regularization \\ \beta_i - \regularization &\text{if } \beta_i \geq \regularization \\ \beta_i + \regularization &\text{if } \beta_i \leq -\regularization}$}
+\end{equation} 
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% == == == Simulation == == == %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Simulation study}
+\beamertoc[0.65]{currentsection, sectionstyle = show}
+
+\subsection{Methodology}
+\begin{frame}{Methodology}
+
+\begin{enumerate}
+    \item Simulate one single data set with $G = 40$, $L = 4$,  $J = 10$ and \tcr{$p = 1000$}
+    \item Run SAEM resolution with 200 iterations
+    
+    \begin{center}
+        \shabox{$\tilde\theta_{Lasso} = \argmax_{\theta\in\Theta} \left\{\Lmarg(\theta | T,Y) - pen_{Lasso}(\theta) \right\}$}
+    \end{center}
+    
+    
+    \item Reduce the model with the variables selected by the Lasso, \tcr{p << 1000}
+    \item Run SAEM resolution with 200 iterations
+    
+    \begin{center}
+        \shabox{$\hat\theta_{MLE} = \argmax_{\theta\in\Theta} \Lmarg(\theta | T,Y)$}
+    \end{center}
+    
+\end{enumerate}
+
+\end{frame}
+
+\subsection{Results}
+\begin{frame}{Results}
+    
+    \myGraphics[width = 0.5\textwidth]{images/para_lbd_1_sqrtn_penalized.png}{$\tilde\theta_{Lasso}$ based on SAEM iterations on a single dataset ($G= 40, L = 4, J = 10$)}
+    
+\end{frame}
+
+
+
+\begin{frame}{Estimate of the parameter with Lasso penalization}
+    
+\myGraphics[width = 0.45\textwidth]{images/violion_plot.png}{$\tilde\theta_{Lasso}$ for 40 SAEM on a single dataset ($G= 40, L = 4, J = 10$)\\ with $\regularization = \frac 1{\sqrt {GL}}$}
+
+\end{frame}
+
+\begin{frame}{Variable selection procedure}
+    
+    \myGraphics[width = 0.6\textwidth]{images/beta_lbd_1_sqrtn_penalized.png}{$\tilde\beta_{Lasso}\in\setr^{1000}$ for 40 SAEM on a single dataset ($G= 40$, $L = 4$, $J = 10$) \\ with $\regularization = \frac 1{\sqrt {GL}}$}
+
+\end{frame}
+
+\begin{frame}{Effect of the regularization choice}
+    
+    \myGraphics[width = 0.6\textwidth]{images/beta_lbd_1_dot_2_sqrtn_penalized.png}{$\tilde\beta_{Lasso}\in\setr^{1000}$ for 40 SAEM on a single dataset ($G= 40$, $L = 4$, $J = 10$) \\with $\regularization = \frac {1.2}{\sqrt {GL}}$}
+\end{frame}
+
+\begin{frame}{MLE of $\beta$ after the variable selection}
+    
+            \myGraphics[width = 0.6\textwidth]{images/beta_lbd_1_dot_2_sqrtn_unpenalized.png}{$\hat\beta_{MLE}\in\setr^{7}$ for 40 SAEM on a single dataset ($G= 40$, $L = 4$, $J = 10$)}
+\end{frame}
+
+
+
+\iffalse
+\begin{frame}{Frame Title}
+\begin{center}
+    \captionsetup{hypcap=false}
+        \begin{tabular}{|c||cccc|cccc|} \hline
+ &  \multicolumn{4}{c|}{Penalized} & \multicolumn{4}{c|}{Unpenalized} \\
+            & $\beta_1$ & $\beta_2$ & $\beta_3$ & $\beta_4$
+            & $\beta_1$ & $\beta_2$ & $\beta_3$ & $\beta_4$\\ \hline
+rrmse & 0.63 & 0.88 & 0.88 & 0.46 & 0.086 & 0.35 & 0.18 & 0.04 \\ 
+biais & -1.3 & -0.88 & 0.88 & 0.91 & -0.16 & -0.34 & 0.18 & -0.021 \\ 
+sd & 0.0094 & 0.01 & 0.021 & 0.024 & 0.036 & 0.031 & 0.034 & 0.039 \\ 
+        \hline
+        \end{tabular}
+   \captionof{table}{Comparaison between biaised and unbiaised estimation of the first 4 components of $\beta$ \\with $\regularization = \frac{1.2}{\sqrt n}$}
+\end{center}
+    
+\end{frame}
+\fi
+
+
+
+\iffalse
+
+
+\subsection{Objectives}
+\begin{frame}{Objectives of the interships}
+        $$\stackeq{\hazard(T_g | U_g, \gamma_g)  &= \hazard_0(T_g) \exp(\beta^T \tcg{U_g} + \tcb \alpha\tcr m(T_g, \vphi_g) )
+        \\ Y_{g,j}&=  m(t_{g,j} ; \vphi_g) + \epsilon_{g,j}
+        }$$
+        
+    \begin{center}
+        With : \fbox{$\tc{inraeRed}{\theta = (\sigma^2, \mu, \Omega, \beta, \alpha)}$}
+    \end{center}
+    
+    \begin{itemize}
+        \item Which \tcg{covariate} do we want to add: NIRS (infrared spectrum of plant tissue)? genetic marker?
+        
+        \item Curse of high dimension : \inrae{not enough observation !}
+        \item \inrae{Computational Complexity} too hard, etc
+    \end{itemize}
+    
+    \centering
+    \begin{block}{Likelihood}
+        We can write the likelihood with complete-likelihood :
+        
+        $$\Lmarg (\theta; Y) = \int \Lcomp(\theta; \vphi, Y) d\vphi$$    
+        \tc{inraeRed}{Recall : $\vphi$ is not observed}
+    \end{block}
+\end{frame}
+
+\subsection{High dimension}
+\begin{frame}{Handle the high dimension of covariate}
+    $$\hat \theta = \argmax_{\theta} \Lmarg(\theta) + pen(\theta)$$
+    
+    \inrae{Wich penalization will be efficient ?}
+    
+    \begin{center}
+        $L_1- norm$  or Ridge and Elastic-Net ?
+    \end{center}
+    
+    %sarah : parler du choix de la pénalité pour faire de la sélection de variables
+    
+    %antoine : on souhaite faire de la section de variable. seulement un petit nombre de variable sont pertinente et sont explicative de la date de floraison. Il faudrait trouver une pénalité qui permette de mettre à 0 les composante de $\theta et garder les beta qui ont un sens dans la régression.=> lasso
+    
+    \centering
+    \begin{block}{Likelihood}
+        We can write the likelihood with complete-likelihood :
+        $$\Lmarg (\theta; Y) = \int \Lmarg(\theta; \vphi, Y) d\vphi$$    
+        Recall : $\vphi$ is not observed
+        
+        \centering
+        \tcr{Due to the non-linear function, this probability is not calculable !}
+        
+    \end{block}
+\end{frame}
+\fi
+
+
+
+
+\thankyou[\tc{inraeCyan}]
+
+\end{document}

@@ -1,0 +1,92 @@
+\documentclass[a4paper]{article}
+\usepackage[boxedEnv, titleFormat]{myBelovedPackage}
+
+\margin{3cm}{4cm}
+\input{notation}
+
+% === Couleur === %
+\setmyColor[ blue = {0, 0, 255},
+             violet = {163, 73, 164},
+             fg = {0, 163, 166}]
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\inrae}[1]{\tc{inraeCyan}{\bf{#1}}}
+\newcommand{\known}[1]{ \tc{BrickRed}{#1}}
+
+\newcommand{\by}[1]{\textbf{[#1]}}
+
+
+% === enumerate === %
+\newenvironment{myEnumerate}[2][white]{
+    \setlist[enumerate]{%wide=0pt,
+                        %labelsep=0.5em,
+                        font=\large\color{#1}}
+    
+    \setlist[enumerate,1]{label = \colorbox{#2}{\makebox[0.75em][c]{\arabic*}}}
+    \setlist[enumerate,2]{label = \colorbox{#2}{\makebox[0.75em][c]{\alph*}}}
+    \setlist[enumerate,3]{label = \colorbox{#2}{\makebox[0.75em][c]{\roman*}}}
+
+    \begin{enumerate}
+    }{ \end{enumerate} }
+
+\makeatletter
+\newif\if@ShareVersion 
+
+\@ShareVersiontrue
+\@ShareVersionfalse
+
+\newcommand{\remark}[1]{\if@ShareVersion \else \tc{inraeRed}{#1} \fi}
+
+
+\newcommand{\myRemarks}[1]{
+    \if@ShareVersion        
+    \else 
+        { 
+            \color{inraeRed}
+            \begin{myEnumerate}{inraeRed}
+                #1
+            \end{myEnumerate}
+        }
+    \fi}
+    
+\makeatother
+
+\begin{document} 
+\begin{myText}\centering
+
+{\Large Ordre du jour : \underline{Présentation d'article}\\ 21 octobre 2022}
+
+\vspace{2cm}
+
+\begin{myEnumerate}{inraeCyan}
+    \item Petit questions sur la thèse : \by{Antoine}
+    \myRemarks{
+        \item Cours de bio
+        \item Quel compétence je dois acquérir pendant ces 3 ans
+        \item Pourquoi vous faites une thèse ? (avec moi ?)
+        \item revalorisation
+    }
+
+  \item Présentation avec diapos : \by{Antoine/Discution}
+  \begin{center} \textit{Simultaneous variable selection for joint models of longitudinal and survival outcomes}\end{center}
+
+  \item Discution sur Ollier-2017 : \by{Discution}
+      \begin{myEnumerate}{inraeBlue}
+        \item Comment faire apparaitre le proximale dans la maximisation (eq 10 - page 5),
+      \end{myEnumerate}
+
+    \item Question en tout genre : \by{Antoine}
+        \begin{myEnumerate}{inraeBlue}
+            \item Résultat de garance : Estimation de l'effet ligne ? \by{pas Antoine}
+            \item Rectification complexité SAEM sans famille exp
+        \end{myEnumerate}
+
+
+\end{myEnumerate}
+
+\end{myText}
+\end{document}

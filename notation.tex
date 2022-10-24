@@ -1,0 +1,65 @@
+
+
+% Vraisemblance
+\newcommand{\Lmarg}[1][]{\mc L_{marg#1}}
+\newcommand{\logmarg}[1][]{\ell_{marg#1}}
+
+\newcommand{\Lcomp}[1][]{\mc L_{comp#1}}
+\newcommand{\logcomp}[1][]{\ell_{comp#1}}
+
+\newcommand{\varobs}{\mc O}
+\newcommand{\varlat}[1][]{Z#1}
+\newcommand{\pen}{\mathrm{pen}}
+\DeclareMathOperator*{\prox}{Prox}
+
+
+\newcommand{\hazard }{h}
+\newcommand{\regularization }{\lambda}
+\newcommand{\nonlinearfct}{m}
+
+
+\newcommand{\forany}[3][1]{#1\leq #2 \leq #3}
+%Indice
+\newcommand{\geno}{g}
+\newcommand{\maxgeno}{G}
+\newcommand{\foranygeno}{\forany{\geno}{\maxgeno}}
+
+\newcommand{\lines}{\ell}
+\newcommand{\maxlines}{L}
+\newcommand{\foranylines}{\forany{\lines}{\maxlines}}
+
+\newcommand{\genolines}{ {\geno,\lines} }
+\newcommand{\meltgenolines}{ {\geno\lines} }
+
+\newcommand{\obs}{j}
+\newcommand{\maxobs}{J}
+\newcommand{\foranyobs}{\forany{\obs}{\maxobs}}
+
+\newcommand{\genolinesobs}{ {\geno, \lines, \obs} }
+
+
+
+
+% --- lazy math command --- %
+\newcommand{\psinorm}[2]{\frac 12 \log(2\pi#1^2) + \frac{#2^2}{2#1^2}}
+\newcommand{\psibar}[1]{\psinorm{\bar #1}{\sigma_{#1}}}
+
+
+
+% Petite commande pour faire des model exp = h + <S, Phi> + psi parce que je suis feignant
+\newcounter{Sc}
+\setcounter{Sc}{0}
+\newcommand{\Scount}{{\stepcounter{Sc}\theSc}}
+
+\newcounter{Phic}
+\setcounter{Phic}{0}
+\newcommand{\Phicount}{{\stepcounter{Phic}\thePhic}}
+
+\newcounter{hc}
+\setcounter{hc}{0}
+\newcommand{\hcount}{{\stepcounter{hc}\thehc}}
+
+\newcounter{psic}
+\setcounter{psic}{0}
+\newcommand{\psicount}{{\stepcounter{psic}\thepsic}}
+    

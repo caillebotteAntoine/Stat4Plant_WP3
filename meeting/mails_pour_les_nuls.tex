@@ -1,0 +1,87 @@
+\documentclass[a4paper]{article}
+\usepackage[boxedEnv, titleFormat]{myBelovedPackage}
+
+\margin{3cm}{4cm}
+\input{notation}
+
+% === Couleur === %
+\setmyColor[ blue = {0, 0, 255},
+             violet = {163, 73, 164},
+             fg = {0, 163, 166}]
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\inrae}[1]{\tc{inraeCyan}{\bf{#1}}}
+\newcommand{\known}[1]{ \tc{BrickRed}{#1}}
+
+\newcommand{\by}[1]{\textbf{[#1]}}
+
+
+% === enumerate === %
+\newenvironment{myEnumerate}[2][white]{
+    \setlist[enumerate]{%wide=0pt,
+                        %labelsep=0.5em,
+                        font=\large\color{#1}}
+    
+    \setlist[enumerate,1]{label = \colorbox{#2}{\makebox[0.75em][c]{\arabic*}}}
+    \setlist[enumerate,2]{label = \colorbox{#2}{\makebox[0.75em][c]{\alph*}}}
+    \setlist[enumerate,3]{label = \colorbox{#2}{\makebox[0.75em][c]{\roman*}}}
+
+    \begin{enumerate}
+    }{ \end{enumerate} }
+
+\makeatletter
+\newif\if@ShareVersion 
+
+\@ShareVersiontrue
+\@ShareVersionfalse
+
+\newcommand{\remark}[1]{\if@ShareVersion \else \tc{inraeRed}{#1} \fi}
+
+
+\newcommand{\myRemarks}[1]{
+    \if@ShareVersion        
+    \else 
+        { 
+            \color{inraeRed}
+            \begin{myEnumerate}{inraeRed}
+                #1
+            \end{myEnumerate}
+        }
+    \fi}
+    
+\makeatother
+
+\begin{document} 
+\begin{myText}\centering
+
+{\Large \underline{Écrire des mails}} \\
+\includegraphics[width = 0.6\textwidth]{logos/pour_les_nuls.png}
+
+
+\vspace{2cm}
+
+\begin{myEnumerate}{inraeCyan}
+    \item Pas envoyer de mails en fin de journée, \underline{traiter les mails dans la matiné !}
+    \item D'abord écrire, puis laisser un peu de temps avant de l'envoyer : 
+    \\pour éviter d'envoyer un mails dans le feu de l'action
+    \item Solliciter Estelle et/ou Sarah en cas de doutes/mails important,
+    \item Ne pas mettre le monde entier en copie,
+    \item Vérifier que je m'adresse à la bonne personnes,
+    \\ Vérifier que je n'ai pas sauter un échelon dans la hierachie
+    \item \underline{Structure du mails :}
+    \begin{myEnumerate}{inraeBlue}
+        \item Bonjour prénom si je connais la personne, monsieur madame sinon
+
+        \item Etre claire et concis autant faire ce peut.
+
+        \item Terminer par un formulation  : cordialement/en vous remerciant, bonne journée etc etc en fonction de la hierachie ou si je connais la personne
+    \end{myEnumerate}
+
+\end{myEnumerate}
+
+\end{myText}
+\end{document}

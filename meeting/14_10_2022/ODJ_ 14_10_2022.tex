@@ -1,0 +1,111 @@
+\documentclass[a4paper]{article}
+\usepackage[boxedEnv, titleFormat]{myBelovedPackage}
+
+\margin{3cm}{4cm}
+\input{notation}
+
+% === Couleur === %
+\setmyColor[ blue = {0, 0, 255},
+             violet = {163, 73, 164},
+             fg = {0, 163, 166}]
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\inrae}[1]{\tc{inraeCyan}{\bf{#1}}}
+\newcommand{\known}[1]{ \tc{BrickRed}{#1}}
+
+\newcommand{\by}[1]{\textbf{[#1]}}
+
+
+% === enumerate === %
+
+
+\newenvironment{myEnumerate}[2][white]{
+    \setlist[enumerate]{%wide=0pt,
+                        %labelsep=0.5em,
+                        font=\large\color{#1}}
+    
+    \setlist[enumerate,1]{label = \colorbox{#2}{\makebox[0.75em][c]{\arabic*}}}
+    \setlist[enumerate,2]{label = \colorbox{#2}{\makebox[0.75em][c]{\alph*}}}
+    \setlist[enumerate,3]{label = \colorbox{#2}{\makebox[0.75em][c]{\roman*}}}
+
+    \begin{enumerate}
+    }{ \end{enumerate} }
+
+
+
+\newcommand{\remark}[1]{\tc{inraeRed}{#1}}
+\newenvironment{myRemarks}{
+    \color{inraeRed}
+    \begin{myEnumerate}{inraeRed} 
+    }{ \end{myEnumerate} }
+    
+
+\begin{document} 
+\begin{myText}\centering
+
+{\Large Ordre du jour : \underline{Réunion de rentrée de thèse}\\ 14 octobre 2022}
+
+\vspace{2cm}
+
+\begin{myEnumerate}{inraeCyan}
+  \item Rappel du modèle du stage (notation, etc) : \by{Antoine}
+
+  \item Conclusion du stage : \by{Antoine}
+      \begin{myEnumerate}{inraeBlue}
+        \item ce qui a été fait,
+      \end{myEnumerate}
+
+  \item Perspective du stage (à finir ?) : \by{Antoine/Discutions}
+      \begin{myEnumerate}{inraeBlue}
+        \item Réussir à inférer tous les paramètres du modèle,
+        \item Tester d'autre pénalisation, \remark{pour quelle donnée ?}
+        \item Application donnée réelle ?
+            \\ \remark{Idée de tristan : kinship / matrice de ressemblance}
+      \end{myEnumerate}
+  
+  \item  Discussion et sujet à aborder :
+      \begin{myEnumerate}{inraeBlue}
+        \item Mes questions/précisions à apporter sur la bio, \by{Antoine}
+        
+        \begin{myRemarks}
+            \item Fond génétique : 
+            \\ c'est quoi la différence génétique entre deux lignées dans un même fond
+            \\ item Qu'est-ce qui fait que les dates différent ?
+    
+            \item J'ai pas compris les mécanismes de défense du mais.
+            \\En particulier est-ce bien de fleurir lors d'une attaque ?
+
+            \item Comment savez vous que vous avez des pyrales bivoltines et non deux pyrales différent ? voire les bivoltines et les univoltines ?
+        \end{myRemarks}
+    
+        
+        \item apparition de la pyrale dans le champ \by{Discutions}            
+            \begin{myRemarks}
+                \item Thèse de Brigitte got encadrée françois rodolphe
+                Approche de la modélisation de la dynamique de population de la pyraled de maïs dans le bassin parisien
+                \item données plante à plante
+            \end{myRemarks}
+        \item propagation de la pyrale entre les plantes : \by{Julie/Elodie}
+            \\ comment modéliser ? (Modélisation spatiale),
+        \item impact du climat sur la pyrale, \by{Julie/Elodie}
+            \\ ajout de covariable dans le model ? ou ?
+            \begin{myRemarks}
+                \item De quel climat à besoin de la pyrale ?
+            \end{myRemarks}
+      \end{myEnumerate}
+  
+  \item Avec Judit et Elodie :
+      \\ comment gérer la double localisation Jouy/Moulon (administratif, ordre de mission,  etc)
+      \begin{myRemarks}
+          \item pass navigo
+          \item télétravail 
+          \item ordre de mission
+      \end{myRemarks}
+\end{myEnumerate}
+
+\end{myText}
+\end{document}

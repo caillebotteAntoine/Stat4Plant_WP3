@@ -1,0 +1,111 @@
+\documentclass[tikz, border=10pt]{standalone}
+
+%\usepackage[border=10pt]{tikz}
+
+\usetikzlibrary{decorations.pathreplacing,calligraphy}
+
+\usetikzlibrary{positioning, fit, shapes, backgrounds}
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\maxgeno}{4}
+\newcommand{\maxlines}{2}
+\newcommand{\linesLength}{5}
+
+
+\usepackage{xifthen}% Pour faire des conditions
+\newcommand{\ifequalselse}[4]{\ifthenelse{\equal{#1}{#2}}{#3}{#4}}
+
+
+\newcommand{\linefield}[3]{
+    \foreach \l in {1,...,\maxlines}
+    {
+        \foreach \p in {1,...,\linesLength}
+        {
+            \node [plant, fill = #1] (\l\p) at (#2 + 1.5*\p, #3 + 1.5*\l) {\includegraphics[width = 0.5cm]{images/corn.png}};
+        }
+        
+    \node (dot) at (#2 + 1.5*\linesLength+1.5, #3 + 1.5*\l) {\Huge\textbf{\dots}};
+    }
+    
+    
+    \foreach \l in {1,...,\maxlines}
+    {
+        \foreach \p in {1,...,\linesLength}
+        {
+            \node [plant, fill = #1] (\l\p) at (#2 + 1.5*\p + 1.5*\linesLength + 1.5, #3 + 1.5*\l) {\includegraphics[width = 0.5cm]{images/corn.png}};
+        }
+    }
+    
+    \draw[color = #1, line width=1mm] (#2+0.75,#3+0.75) rectangle +(1.5*2*\linesLength+1.5, 1.5*\maxlines);
+}
+
+
+\begin{document}
+\begin{tikzpicture}[auto, xscale=1, yscale=1,
+    S/.style 2 args={xshift=#1*1cm, yshift=#2*1cm} ]
+    
+    % === Style === %
+    % 1) Circle
+    \tikzstyle{plant}     = [circle, thick, draw=inraeGreen!75, fill=inraeGreen!20]
+    
+    % 2) rectangle
+    \tikzstyle{lines} = [thick, inner sep=1pt, anchor=west, fill=white]
+   %=======================================================================================================%
+   
+   
+    \linefield{green!30}    {0}{1*1.5*\maxlines}
+    \linefield{red!30}      {0}{2*1.5*\maxlines}
+    
+    
+    \node[rotate = 90] (dot) at (1.5, 1.5*\maxlines*4- 0.75) {\Huge\textbf{\dots}};
+    \node[rotate = 90] (dot) at (1.5 + 1.5*2*\linesLength, 1.5*\maxlines*4- 0.75) {\Huge\textbf{\dots}};
+    
+    
+    
+    \linefield{blue!30}     {0}{4*1.5*\maxlines}
+    \linefield{yellow!40}   {0}{5*1.5*\maxlines}
+   
+   
+   
+    \node (fields) at (0.75*2*\linesLength+2*0.75, 1.95*10) {\Huge\textbf{Field}};
+    
+    \draw [decorate, line width=0.8mm, 
+        decoration = {amplitude=20pt,brace}] (0.5,1.5*\maxlines+0.75) --  (0.5,1.5*\maxlines*\maxgeno+1.5*\maxlines+0.75+3)
+        node[xshift = -1.5cm, yshift = -6cm, rotate = 90] {\Huge\textbf{genotype repetition}};
+    
+    \draw [decorate, line width=0.8mm, 
+        decoration = {amplitude=20pt,brace}] (1.5+1.5*2*\linesLength+0.75, 3.5) --  (0.75, 3.5) node[yshift = -1cm, midway] {\Huge\textbf{lines}};
+    
+    \node[anchor = east] (geno) at (7.75, 0.5) {\huge\textbf{differents genotype :}};
+    
+    \foreach \g in {1,...,\maxgeno}
+    {
+        \pgfmathsetmacro\k{\g*100/\maxgeno};
+        
+        
+        \ifequalselse{\g}{1}{
+            \colorlet{color}{green!30}
+        }{
+            \ifequalselse{\g}{2}{
+                \colorlet{color}{red!30}
+            }{
+                \ifequalselse{\g}{3}{
+                    \colorlet{color}{blue!30}
+                }{
+                    \ifequalselse{\g}{4}{
+                        \colorlet{color}{yellow!40}
+                    }{} 
+                } 
+            } 
+        }
+        
+        \node [plant, fill = color] (\g) at ([S={3.5cm+1.5*\g}0]geno) {\includegraphics[width = 0.5cm]{images/corn.png}};
+    }
+   
+   
+\end{tikzpicture}
+\end{document}

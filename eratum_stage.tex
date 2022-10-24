@@ -1,0 +1,342 @@
+\documentclass[a4paper]{article}
+\usepackage[boxedEnv, numbering, titleFormat, english]{myBelovedPackage}
+
+\margin{3cm}{4cm}
+\setlhead{Antoine Caillebotte}
+\input{notation}
+
+\begin{document} 
+\begin{myText}
+
+\section{SAEM with gradient descent step}
+
+Assuming we got observation written $\varobs$ with unobserved latent variable $\varlat$ in a model characterize by the parameter $\theta$. We denote by $\Lcomp$ the complete likelihood of $\varobs$.
+
+\subsection{Standard SAEM}
+
+The SAEM is writen as : 
+
+\begin{myAlgorithm}[13cm]
+    \caption{Stochastic Approximation Expectation Maximization}
+    \Require{ Number of iterations $K\geq 1$ ; $(u_k)_{k\geq 1}$ a sequence of step-size}
+    \Initialize Starting point $\theta_0 \in \setr^d$ ; $Q_0 = 0$
+    
+    \For{$k=1$ \KwTo $K$}{
+        \myBullet[red]\bf{Step S :} \\ 
+        \quad simulate $\varlat[^{(k)}]$ according to the conditional distribution $f_{\varlat}(\varlat|\varobs, \theta_k)$
+         \\
+         \myBullet[red] \bf{Step A :} \\
+         \quad update $Q_{k+1}$ according to a stochastic approximation :
+            $$Q_{k+1}(\theta) = (1-u_k) Q_k(\theta) + u_k \log \Lcomp(\theta ; \varlat[^{(k)}]; \varobs)$$
+         
+         \myBullet[red] \bf{Step M :} \\
+         \quad maximization of $Q_{k+1}$ : $\theta_{k+1} = \argmax_{\theta\in\Theta} Q_{k+1}(\theta)$
+    }
+     \Return{$\hat \theta = \theta_K$}
+\end{myAlgorithm}
+
+Where $(u_k)_{k\geq 1}$ is a step-size sequence such that $\forall k \in \setn, u_k \in [0,1], \som k1\infty u_k= \infty$ and $\som k1\infty u_k^2< \infty$.
+
+\subsection{Standard SAEM in exponential context}
+
+We place ourselves in the framework of exponential families and write the complete likelihood as follows: \fbox{$\Lcomp[,\varobs](\theta) = h(\varobs, \varlat) + \sca{\Phi(\theta) ; S(\varobs,\varlat)}- \psi(\theta)$}. Then, we can write the A-step as : 
+$$S_{k+1} = (1-u_k) S_k + S(\varobs, \varlat_{k+1})$$
+
+%$$\stackeq{S_{k+1} &= (1-u_k) S_k + S(\varobs, \varlat_{k+1}) \\ H_{k+1} &= (1-u_k) H_k + h(\varobs, \varlat_{k+1})}$$
+
+
+The SAEM in the context of the exponential family can be written as follows: 
+
+\begin{myAlgorithm}[13cm]
+    \caption{SAEM for exponential family}
+    \Require{ Number of iterations $K\geq 1$ ; $(u_k)_{k\geq 1}$ a sequence of step-size}
+    \Initialize Starting point $\theta_0 \in \setr^d$ ; $S_0 = 0$ ; $H_0 = 0$
+    
+    \For{$k=1$ \KwTo $K$}{
+        \myBullet[red]\bf{Step S :} \\ 
+        \quad simulate $\varlat[^{(k)}]$ according to the conditional distribution $f_{\varlat}(\varlat|\varobs, \theta_k)$
+         \\
+         \myBullet[red] \bf{Step A :} \\
+         \quad update $S_{k+1}$ \iffalse and $H_{k+1}$\fi according to a stochastic approximation :
+            $$S_{k+1} = (1-u_k) S_k + u_k S(\varobs, \varlat_{k+1}) $$
+            %$$H_{k+1} = (1-u_k) H_k + u_k H(\varobs, \varlat_{k+1}) $$
+         \\
+         \myBullet[red] \bf{Step M :} \\
+         \quad maximization : $\theta_{k+1} = \argmax_{\theta\in\Theta} \left\{\iffalse H_{k+1} +\fi \sca{ \Phi(\theta) ; S_{k+1}} - \psi(\theta) \right\}$
+    }
+     \Return{$\hat \theta = \theta_K$}
+\end{myAlgorithm}
+
+
+
+
+
+\subsection{Adding gradient descent in maximization step}
+
+We assume that we can have, on the one hand, real parameters and, on the other hand, high dimensional parameters in $\theta$. These last ones require a particular attention during the maximization that we wish to obtain by gradient descent. We denote by $\nu$ the parameters whose maximization is explicit and by $\beta$ for the others : $\theta = (\nu, \beta)\in V \times B = \Theta \subset\setr^{d+p}$.
+
+
+To handle the high dimension we want to optimize the penalized likelihood as follows: 
+    $$\hat \theta = (\hat\nu, \hat\beta) = \argmax_{\nu, \beta \in V \times B}\Lmarg[,\varobs] (\nu,\beta) - pen(\beta)$$
+
+Where $pen$ might be the LASSO penalty $pen(\beta) = \lambda \norm\beta_1$ with $\lambda$ a regularization parameter to be determined. We propose to compute the maximization step of the SAEM by performing a \textbf{two-step maximization}. We first calculate the explicit maxima over $\nu$ with $\beta$ fixed equal to $\beta_k$ :
+
+    $$\nu_{k+1} = \argmax_{\nu\in V}\left\{\sca{ \Phi(\nu,\beta_k) ; S_{k+1}} - \psi(\nu, \beta_k) \right\}$$ 
+
+Then, using a specific method, we compute the maximization over the high-dimensional parameter $\beta$ with $\nu$ being fixed equal to the updated valu $\nu_{k+1}$ as : 
+    $$\beta_{k+1} = \argmax_{\beta\in B}\ub{\left\{\sca{ \Phi(\nu_{k+1},\beta) ; S_{k+1}} - \psi(\nu_{k+1}, \beta)\right\}}_{=Q_{k+1}(\beta)} $$
+
+This last step is achieve with a proximal gradient descent as follow : 
+
+\begin{myAlgorithm}[12cm]
+    \caption{Proximal Normalized Gradient Descent}\label{PNGD}
+    \Require{Number of iterations $K_{grad}\geq 1$, a function to optimize $Q$}
+    \Initialize $\beta_0 \in \setr^p$ a starting point
+    
+    \For{$k=1$ \KwTo $K_{grad}$}{
+        $\omega_k \leftarrow \beta_{k-1} - \gamma_k \frac{\nabla Q(\beta_{k-1})}{\norm{\nabla Q(\beta_{k-1})}_2}$
+        
+        $\beta_k \leftarrow prox_{\gamma_kpen}(\omega_k)$
+    }
+     \Return{$\beta_{K_{grad}}$}
+\end{myAlgorithm}
+
+The SAEM become the following Stochastic Approximation Expectation Gradient Descent Maximization 
+
+
+\begin{myAlgorithm}[13cm]
+    \caption{SAEGDM }
+    \Require{Number of iterations $K\geq 1$ ; $(u_k)_{k\geq 1}$ a sequence of step-size}
+    \Initialize Starting point $\theta_0 \in \setr^d$ ; $S_0 = 0$ ; $H_0 = 0$
+    
+    \For{$k=1$ \KwTo $K$}{
+        \myBullet[red]\bf{Step S :} \\ 
+        \quad simulate $\varlat[^{(k)}]$ according to the conditional distribution $f_{\varlat}(\varlat|\varobs, \theta_k)$
+         \\
+         \myBullet[red] \bf{Step A :} \\
+         \quad update $S_{k+1}$ and $H_{k+1}$ according to a stochastic approximation :
+            $$S_{k+1} = (1-u_k) S_k + u_k S(\varobs, \varlat_{k+1}) $$
+            %$$H_{k+1} = (1-u_k) H_k + u_k H(\varobs, \varlat_{k+1}) $$
+         \\
+         \myBullet[red] \bf{Step M :} \\
+         \quad \myBullet[blue] maximization : $\nu_{k+1} = \argmax_{\nu\in V}\left\{\sca{ \Phi(\nu,\beta_k) ; S_{k+1}} - \psi(\nu, \beta_k) \right\}$
+         
+         \quad \myBullet[blue] gradient descent on $Q_{k+1}$: $$\beta_{k+1} = \argmax_{\beta\in B}\ub{\left\{\sca{ \Phi(\nu_{k+1},\beta) ; S_{k+1}} - \psi(\nu_{k+1}, \beta)\right\}}_{=Q_{k+1}(\beta)} $$
+    }
+     \Return{$\hat \theta = (\hat\nu,\hat\beta) = (\nu_K,\beta_K)$}
+\end{myAlgorithm}
+
+
+\end{myText}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+
+    \begin{myAppendix}
+    
+\subsection{Exponenatial family proof}
+
+\begin{myBoxedEnv}[final modeling]{Joint Model}{\bccrayon}{red}
+    
+    For any genotype $\foranygeno$,  repetition in the lines  $\foranylines$ and observation $\foranyobs$
+    
+    \begin{equation}\label{jointmodel}
+        \stackeq[lll]{ 
+            \hazard_\genolines (T_\genolines|\mc M(T_\genolines;\vphi_\geno), U_\meltgenolines) 
+                = \hazard_0(T_\genolines) \exp(\beta ^T U_\meltgenolines + \alpha \nonlinearfct(T_\genolines;\vphi_\geno) )
+        \\  Y_\genolinesobs = \nonlinearfct(t_\obs ; \vphi_\geno )  + \epsilon_\genolinesobs 
+        \\  \vphi_\geno \sim \mc N(\mu, \Omega) \quad  ;  \quad  \epsilon_\genolinesobs \sim \mc N(0,\sigma^2) }
+    \end{equation}
+    
+    The parameter of this model is: $\theta = (\sigma^2\mu, \Omega, a,b, \beta, \alpha)$ where $\mu\in\setr^3$ and $\Omega\in\mc S^+_3(\setr)$
+\end{myBoxedEnv}
+
+We assume that the parameter $a$, $b$ of the Weibull distribution and $\alpha$ are random variable normally distributed as follows: $a\sim\mc N(\bar a,\sigma_a^2)$, $b\sim \mc N(\bar b, \sigma_b^2)$ and $ \alpha\sim \mc N(\bar \alpha, \sigma_ \alpha^2)$, where the variances are known. Now we write the complete likelihood for $\varobs = (Y,T, U_\meltgenolines)$ and $\varlat = (a,b,\alpha,\vphi)$, we notice that it is written with the full likelihood of $Y$ as :
+
+\newcommand{\df}[1]{f_{#1}(#1)}
+
+\begin{align*}
+    \Lcomp[,\varobs] ( \theta ) &= f_\varobs(\varobs | \varlat) \times f_{\varlat}(\varlat)
+    \\ &= f_T(T | a,b,\alpha,\vphi) \times \ub{f_Y(Y| \vphi) \times  f_\vphi(\vphi)}_{=\Lcomp[,Y](\theta_Y | Y, \vphi)} 
+    \times \df a \df b \df \alpha
+    \\ &= \Lcomp[,Y](\theta_Y | Y,\vphi) \times f_T(T | a,b,\alpha,\vphi) 
+    \times \df a \df b \df \alpha
+\end{align*}
+
+Where $f_\varobs$ is the conditional density of the observation given $\varlat$ and $f_{\varlat}$ is the density of the latent variable. Functions $f_a$, $f_b$, $f_\alpha$, $f_\vphi$ are the normal density function corresponding to each latent variables.
+
+
+One seeks to highlight an exponential class of the form $h(Z)exp(\sca{\Phi(\theta); S(Z)} -\psi(\theta))$. We will do it step by step by starting to decompose the contribution of the survival model and then by developing the likelihood of the mixed effect model.
+
+
+\subsubsection*{Survival modeling}
+    
+    \begin{align*}
+        f_T(t | a,b,\alpha,\vphi) \times \df a \df b \df \alpha
+        =& \pro \geno 1 \maxgeno \pro \lines 1 \maxlines f_T(t_\genolines | a,b,\alpha,\vphi) \times \df a \df b \df \alpha
+        \\
+        =& \pro \geno 1 \maxgeno \pro \lines 1 \maxlines \lambda(t_\genolines | \mc M( t ; \vphi_\geno),U_\meltgenolines) S(t_\genolines|\mc M( t ; \vphi_\geno),U_\meltgenolines) 
+        \\ &\times \dnorm{\bar a}{\sigma_a^2}{a} \times \dnorm{\bar b}{\sigma_b^2}{b}
+        \\ &\times  \dnorm{\bar \alpha}{\sigma_\alpha^2}{\alpha}
+    \end{align*}
+    
+    we have, $\forall t > 0$ :
+    
+    \begin{align*}
+        %Survival function
+        \log(S(t|\mc M( t ; \vphi_\geno), U_\meltgenolines, \tcg\alpha))  &= -\tcg{b a^{-b}} \exp(\tcr\beta^T U_\meltgenolines) \int_0^t s^{b-1} \exp(\tcg\alpha \nonlinearfct(s; \tcg{\vphi_\geno})) ds
+        %hazard function
+        \\ \log(\lambda(t | \mc M(t ; \vphi_\geno), U_\meltgenolines, \tcg \alpha)) &= \log(\tcg{b a^{-b} t^{b-1}}) + \tcr \beta^T U_\meltgenolines + \tcg\alpha\nonlinearfct(t ; \tcg{\vphi_\geno})
+    \end{align*}
+
+    We recognize the following scalar products and exponential model :
+    \begin{align*}
+        %Survival function
+        \som \geno 1 \maxgeno \som \lines 1 \maxlines\log(S(t|\mc M( t ; \vphi_\geno), U_\meltgenolines, \tcg\alpha)) 
+        &= \som \geno 1 \maxgeno \som \lines 1 \maxlines\left\{ \exp(\tcr\beta^T U_\meltgenolines)  \times \left(-\tcg{b a^{-b}} \int_0^t s^{b-1} \exp(\tcg\alpha \nonlinearfct(s; \tcg{\vphi_\geno})) ds\right) \right\}
+        \\ &= \sca{\Phi_\Phicount(\theta) ; S_\Scount(a,b,\alpha,\vphi)}        
+        %hazard function
+        \\ \som \geno 1 \maxgeno \som \lines 1 \maxlines\log(\lambda(t | \mc M(t ; \vphi_\geno), U_\meltgenolines, \tcg \alpha))
+        &= \ub{\maxgeno\maxlines\times \log(\tcg{b a^{-b}}) +(\tcg b-1) \som \geno 1 \maxgeno \som \lines 1 \maxlines\log(t) + \tcg\alpha\nonlinearfct(t ; \tcg{\vphi_\geno})}_{=h(a,b,\alpha)}+ \ub{ \tcr \beta^T U_\meltgenolines } _{=-\psi_1(\theta_T)}
+        \\ &= h(a,b,\alpha) - \psi_\psicount(\theta_T)
+    \end{align*}
+
+    So we have : 
+    
+    \begin{align*}
+        \log(f_T(t | a,b,\alpha,\vphi) \times \df a \df b \df \alpha)
+        =& h(a,b,\alpha) + \sca{\Phi_1(\theta) ; S_1(a,b,\alpha,\vphi)}  - \psi_1(\theta_T)
+        \\ &
+        -\frac 12 \log(2\pi\sigma_a^2) - \frac 1{2\sigma_a^2}(\tcg a-\tcr{\bar a})^2        
+        \\ &
+        -\frac 12 \log(2\pi\sigma_b^2) - \frac 1{2\sigma_b^2}(\tcg b-\tcr{\bar b})^2 
+        \\ &
+        -\frac 12 \log(2\pi\sigma_\alpha^2) - \frac 1{2\sigma_\alpha^2}(\tcg \alpha-\tcr{\bar \alpha})^2
+    \end{align*}
+    
+    We define $\psi_\psicount (\theta_T) = \psibar b + \psibar b + \psibar \alpha$. We pose components of the exhaustive statistics as:
+    
+    \begin{myItemize}[green]
+        % === \bar a === %
+        \item $S_\Scount(a, b, \alpha) =  \tcg a$ , $\Phi_\Phicount(\theta_T) = \frac{\bar a}{\sigma_a^2}$
+        
+        % === \bar b === %
+        \item $S_\Scount(a, b, \alpha) =  \tcg b$ , $\Phi_\Phicount(\theta_T) = \frac{\bar b}{\sigma_b^2}$
+        
+        % === \bar a alpha === %
+        \item $S_\Scount(a, b, \alpha) =  \tcg \alpha$ , $\Phi_\Phicount(\theta_T) = \frac{\bar \alpha}{\sigma_\alpha^2}$
+    \end{myItemize}
+
+
+    
+    At this points we have : 
+    \begin{center}
+        \shabox{$\log(f_T(t | a,b,\alpha,\vphi) \times \df a \df b \df \alpha) 
+        = h(a, b, \alpha)  + \som k14 S_k(a, b, \alpha)^T  \Phi_k(\theta_T)- \psi_1(\theta_T) - \psi_2(\theta_T) $}
+    \end{center}
+
+    
+
+
+\newpage
+% ====================================  %
+% --- Non-linear mixed effect model --- %
+% ====================================  %
+\subsubsection*{Non-linear mixed effect model}
+
+We suppose that $\vphi$ is normally distributed $\vphi \sim \mc N(\mu, \Omega)$ with $\mu\in \setr^F$ and $\Omega = diag(\omega_1^2, ...,\omega_F^2)$.
+
+\begin{align*}
+    f (\theta_Y | Y , \vphi,) 
+    &=\pro \geno 1 \maxgeno \pro \lines 1 \maxlines \pro \obs 1 \maxobs \dnorm{\nonlinearfct(t_\genolinesobs ; \vphi_\geno)}{\sigma^2}{y_\genolinesobs}
+    \\ &\quad  \times \pro \geno 1 \maxgeno \frac 1{\sqrt{(2\pi)^F \det(\Omega)}} \exp\left(-\frac 12 (\vphi_\geno - \mu)^T \Omega^{-1} (\vphi_\geno -\mu)\right)
+\end{align*}
+
+So the log-likelihood is writen : 
+
+\begin{align*}
+    \log(f (\theta_Y | Y, \vphi)) =& -\tcb{\frac{\maxgeno\maxlines\maxobs}2\log(2\pi\sigma^2)} - \frac 1{2\tcr\sigma^2} \som \geno 1 \maxgeno \som \lines 1 \maxlines \som \obs 1 \maxobs \left[y_\genolinesobs - m(s_\obs; \vphi_\geno)\right]^2
+    \\ & - \tcb{\frac \maxgeno 2 \log((2\pi)^F \det(\Omega))} - \frac 12\som \geno 1 \maxgeno (\vphi_\geno-\tcr\mu)^T \tcr\Omega^{-1} (\vphi_\geno-\tcr\mu)
+\end{align*}
+
+We define $\tcb{\psi_\psicount(\theta_Y) = \frac {\maxgeno\maxlines \maxobs}2\log(2\pi\sigma^2) + \frac \maxgeno 2 \log((2\pi)^F \det(\Omega))}$ , $\Phi_\Phicount(\theta_Y) = \frac {-\maxgeno\maxlines \maxobs}{2\tcr\sigma^2}$ then the statistics are $S_\Scount(\vphi) =\frac 1{\maxgeno\maxlines \maxobs} \som \geno 1 \maxgeno\som \lines 1 \maxlines \som \obs 1 \maxobs \left[y_\genolinesobs - \nonlinearfct(s_\obs ; \vphi_\geno)\right]^2$. Furthermore as $\Omega$ is diagonal, we have simply :
+
+
+$$\begin{array}{rl}
+\frac {-1}2\som \geno 1 \maxgeno(\vphi_\geno-\tcr\mu)^T \tcr\Omega^{-1} (\vphi_\geno-\tcr\mu) &= \frac {-1}2\som \geno 1 \maxgeno\som k1F \frac{(\vphi_{g,k}- \tcr{\mu_k})^2}{\tcr{\omega_k}^2} \\ &= \som \geno 1 \maxgeno\som k1F \vphi_{g,k}^2 \frac {-1}{2\tcr{\omega_k}^2}  + \som \geno 1 \maxgeno\som k1F \vphi_{g,k} \times \frac {\tcr{\mu_k}}{\tcr{\omega_k}^2} - G\som k1K \frac{\tcr{\mu_k}^2}{2\tcr{\omega_k}^2}
+\end{array}$$
+
+Then $\Phi_{\Phicount,.}(\theta_Y) = \left(\frac{-G}{2\tcr{\omega_1}^2}, ..., \frac{-G}{2\tcr{\omega_F}^2}\right)^T$ 
+and  $S_{\Scount,. }(Z) = \left(\frac 1G\som \geno 1 \maxgeno\vphi_{g,1}^2 ,...,\frac 1G\som \geno 1 \maxgeno \vphi_{g,F}^2\right)^T$ 
+then $\Phi_{\Phicount,.}(\theta_Y) = \left(\frac {\maxgeno\tcr{\mu_1}}{\tcr{\omega_1}^2} ... \frac {\maxgeno\tcr{\mu_F}}{\tcr{\omega_F}^2}\right)^T$
+and $S_{\Scount,.}(Z) = \left(\frac 1G\som \geno 1 \maxgeno \vphi_{\geno,1}, ..., \frac 1G\som \geno 1 \maxgeno \vphi_{\geno,F}\right)^T$,
+finally $\tcb{\psi_\psicount (\theta_Y) = G\som k1K \frac{\tcr{\mu_k}^2}{2\tcr{\omega_k}^2}}$. We can then write:
+
+
+\begin{center}
+    \shabox{$\log(f (\theta_Y | Y,\phi)) = \som k57 S_k(\vphi)^T \Phi_k(\theta_Y)  - \psi_2(\theta_Y)- \psi_3(\theta_Y) - \psi_4(\theta_Y)$}
+\end{center}
+
+We introduce the notation $\Phi = ( \Phi_{1,1}, ..., \Phi_{2,1}, \Phi_2, \Phi_3, \Phi_4,\Phi_5, \Phi_{6,1}, ..., \Phi_{6,F}, \Phi_{7,1} , ..., \Phi_{7,F})^T$ (as well as $S$) 
+
+
+
+
+
+
+
+\newpage
+% ====================================  %
+% --- Joint modeling --- %
+% ====================================  %
+\subsubsection*{Joint modeling}
+    
+    Eventually we have, by grouping $\psi = \som k1\thepsic \psi_k$ :
+    
+    \begin{equation}\label{exp_form}
+        \shabox{$\log(f ( \theta | T, Y, b, \vphi ) ) = h(b, \alpha) + \sca{\Phi(\theta) ; S(b, \alpha, \vphi)} - \psi(\theta)$}
+    \end{equation}
+    
+    \findem
+    
+\newpage
+
+\subsection{Derivation for gradient descent in inference}
+
+$$\begin{array}{rl}
+\zeta(\alpha, \beta) &= \som \geno 1 \maxgeno \som \lines 1 \maxlines \ub{\left(\tcr\beta ^T U_\meltgenolines + \tcr\alpha \nonlinearfct(T_\genolines; \vphi_\geno) - ba^{-b}\exp(\tcr\beta^T U_\meltgenolines)\int_0^{T_\genolines} s^{b-1} \exp(\tcr\alpha\nonlinearfct(s;\vphi_\geno)ds \right)}_{=\zeta_\genolines(\alpha, \beta)}
+\\  &=\som \geno 1 \maxgeno \som \lines 1 \maxlines \zeta_\genolines(\alpha, \beta)
+\end{array}$$
+
+\begin{align*}
+    \partiel{\zeta_\genolines(\alpha, \beta)}\beta &=  U_\meltgenolines - ba^{-b} U_\meltgenolines \exp(\tcr\beta^T U_\meltgenolines) \int_0^{T_\meltgenolines} s^{b-1} \exp(\tcr\alpha\nonlinearfct(s ; \vphi_\geno)) ds
+\end{align*}
+
+
+\end{myAppendix}
+
+\end{document}

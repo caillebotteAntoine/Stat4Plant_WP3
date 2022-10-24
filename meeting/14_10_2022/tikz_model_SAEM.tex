@@ -1,0 +1,107 @@
+
+\documentclass[tikz, border=10pt]{standalone}
+
+%\usepackage[border=10pt]{tikz}
+
+\usetikzlibrary{positioning, fit, shapes, backgrounds}
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+
+
+\newcommand{\hazard }{h}
+\newcommand{\regularization }{\lambda}
+\newcommand{\nonlinearfct}{m}
+
+
+\begin{document}
+\begin{tikzpicture}[auto, xscale=1, yscale=1,
+    S/.style 2 args={xshift=#1*1cm, yshift=#2*1cm} ]
+    
+    % === Style === %
+    % 1) Circle
+    \tikzstyle{obs}     = [circle, thick, draw=inraeGreen!75, fill=inraeGreen!20]
+    \tikzstyle{var}     = [circle, thick, draw=inraeCyan!75, fill=inraeCyan!20]
+    \tikzstyle{para}    = [circle, thick, draw=inraeRed!75, fill=inraeRed!20]
+    \tikzstyle{other}   = [circle, thick, draw=black!75, fill=black!20]
+    % 2) rectangle
+    \tikzstyle{eq}      = [dashed, thick, inner sep=1pt, anchor=west, draw=gray!50, fill=white]
+    \tikzstyle{model}   = [thick, inner sep=5pt, anchor=center, fill=white]
+   %=======================================================================================================%
+
+    % === Survival Model === %
+    \node[obs] (T) at (0,0) {$T$};
+
+        \node[other] (lbd0) at ([S={-1.5}2]T) {$\hazard_0$};
+        \draw[->] (lbd0) to (T);
+            \node[other] (a) at ([S={-1}2]lbd0) {$a$};
+            \draw[->] (a) to (lbd0);
+            
+            \node[var] (b) at ([S=02]lbd0) {$b$};
+            \draw[->] (b) to (lbd0);
+            \node[eq] at ([S={.5}{.5}]b)
+                {\scriptsize $b|\textcolor{inraeBlue}{\mathbf{\sigma_b^2}} \sim \mathcal N(0, \textcolor{inraeBlue}{\sigma_b^2})$};
+
+        
+        \node[var] (alpha) at ([S=02]T) {$\alpha$};
+        \draw[->] (alpha) to (T);
+        \node[eq] at ([S={-.8}{.75}]alpha)
+            {\scriptsize $\alpha|\textcolor{inraeBlue}{\mathbf{\sigma_\alpha^2}} \sim \mathcal N(0, \textcolor{inraeBlue}{\sigma_\alpha^2})$};
+        
+        \node[para] (beta)  at ([S={1.5}2]T) {$\beta$};
+        \draw[->] (beta) to (T);
+    
+    % --- fit --- %
+    
+    \begin{scope}[on background layer]
+        \draw[thick, violet]  plot[smooth cycle, tension=1] coordinates{
+            ([S={-.5}{.5}]a)
+            ([S={.5}{0.5}]beta)
+            ([S={-.5}{-.5}]T) };
+    \end{scope}
+        
+    \node[model, draw = violet] at  ([S={-2.5}{0.5}]T){\bf Survival model};
+    
+    
+    
+    % === Nonlinear mixed effect model === %
+    \node[obs] (Y) at (6,2) {$Y$};
+    \node[eq] at ([S={-1.5}{-.75}]Y)
+        {\scriptsize $Y_{g,i,j}|\varphi_g \sim \mathcal N (\textcolor{red}\nonlinearfct(t,\varphi_g); \sigma^2)$};
+    
+        \node[var] (phi) at     ([S={-1}2]Y) {$\varphi$};
+        \node[eq, anchor=east] at ([S={-.5}{-.5}]phi)
+            {\scriptsize $\varphi_g|\mu, \Omega^2 \sim \mathcal N(\mu, \Omega^2)$};
+        \draw[->] (phi) to (Y);
+            \node[para] (mu)    at     ([S={-1}2]phi) {$\mu$};
+            \draw[->] (mu) to (phi);
+            
+            \node[para] (Omega) at     ([S=02]phi)  {$\Omega$};
+            \draw[->] (Omega) to (phi);
+        
+        \node[para] (sigma2) at ([S=12]Y) {$\sigma^2$};
+        \draw[->] (sigma2) to (Y);
+
+    % --- fit and name --- %
+    \begin{scope}[on background layer]
+        \draw[thick, orange]  plot[smooth cycle, tension=1] coordinates{
+            ([S={-0.5}{-0.5}]Y)
+            ([S=11]sigma2)
+            %([S=0{0.5}]Omega)
+            ([S={-0.5}{0.5}]mu) };
+    \end{scope}
+    
+    \node[model, draw = orange] at ([S=0{.8}]Omega) {\bf Nonlinear mixed effect model};
+
+    
+    % === link function === %
+    \draw[->] (Y) -> (T) node[other, pos=0.5, yshift=0.4cm] (m) {$\textcolor{red}\nonlinearfct$};
+    \node () at ([S=0{-.5}]m) {\scriptsize link function };
+
+
+
+\end{tikzpicture}
+\end{document}

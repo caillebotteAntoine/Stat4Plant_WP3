@@ -1,0 +1,57 @@
+\documentclass[a4paper]{article}
+\usepackage[boxedEnv, numbering, titleFormat, english]{myBelovedPackage}
+
+\margin{3cm}{4cm}
+\setlhead{Antoine Caillebotte}
+
+\loadbiblatex[citestyle = authoryear]{references.bib}
+
+\input{notation}
+
+\renewcommand{\pen}{g}
+\renewcommand{\logmarg}[1][]{\ell}
+
+\begin{document} 
+\begin{myText}
+
+
+Based on \cite{fort_stochastic_2017}
+
+
+We focus our thelves on the following maximization problem :
+$$\argmax_{\theta \in \setr^p} \{\ub{\logmarg - \pen(\theta)}_{=F(\theta)}\}$$
+
+Where $\logmarg$ is $\log\Lmarg = \log \int \Lcomp(Y,Z;\theta) dZ$ and $\pen$ the penalization term, both satify : 
+\begin{myItemize}[blue]
+    \item $\pen : \setr^p \rightarrow \setr$ is convex and lower semi-continuous.
+    \item $\logmarg : \setr^p \rightarrow \setr$ is continuously differentiable on $\Theta = \{ \theta\in\setr^p | \abs{\logmarg(\theta)} + \pen(\theta) < \infty\}$
+\end{myItemize}
+
+\citeauthor{fort_stochastic_2017} explain the update step in the proximal gradient algorithm using the following inequalities. The first one is justified by using the differentiability and convexity of $\logmarg$
+
+\afaire{La seconde est justifié par H2 (cf article) et pour tout $L\leq \gamma_{n+1}^{-1}$ (page 5) je ne comprend pas pourquoi, $\gamma_{n+1}^{-1} > 0$ ne suffit pas !}
+
+\afaire{a partir de la troisième ligne, c'est mon développement pour comprendre l'article}
+
+\begin{align*}
+    F(\theta) = \logmarg(\theta) - \pen(\theta)
+    & \geq  \logmarg(\theta_n) - \sca{\nabla \logmarg(\theta_n), \theta - \theta_n} - \pen(\theta)
+    \\ &\geq  \logmarg(\theta_n) - \sca{\nabla \logmarg(\theta_n), \theta - \theta_n} -\frac 1{2\gamma_{n+1}}\norm{\theta-\theta_n} - \pen(\theta)
+    \\ & \geq  \logmarg(\theta_n) - \sca{\nabla \logmarg(\theta_n), \theta - \theta_n} -\frac 1{2\gamma_{n+1}}\norm{\theta-\theta_n}-\frac 1{2\gamma_{n+1}}\norm{\nabla \logmarg(\theta_n)} - \pen(\theta)
+    \\ & \geq \logmarg(\theta_n) -\frac 1{2\gamma_{n+1}} \norm{\nabla \logmarg(\theta_n)+ \theta -\theta_n} -\pen(\theta)
+\end{align*}
+
+\afaire{J'ai une erreur de signe $-$ devant $\theta$}
+
+Normalement on voudrais écrire : 
+
+$$F(\theta) = \logmarg(\theta) - g(\theta) \geq \logmarg(\theta_n) - \left\{ \frac 1{2\gamma_{n+1}} \norm{\nabla \logmarg(\theta_n)+ \theta -\theta_n} + pen(\theta) \right\}$$
+
+The maximization of $F$ become a minimization proble
+\begin{align}
+    \max_{\theta \in \setr^p} F(\theta) 
+    &\geq \logmarg(\theta_n) - \min_{\theta\in\setr^p}  \left\{ \frac 1{2\gamma_{n+1}} \norm{\nabla \logmarg(\theta_n)+ \theta -\theta_n} + pen(\theta) \right\} 
+\end{align}
+
+\end{myText}
+\end{document}

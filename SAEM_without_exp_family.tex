@@ -1,0 +1,62 @@
+\documentclass[a4paper]{article}
+\usepackage[boxedEnv, numbering, titleFormat, english]{myBelovedPackage}
+
+\margin{3cm}{4cm}
+\setlhead{Antoine Caillebotte}
+
+\loadbiblatex[citestyle = authoryear]{references.bib}
+
+\input{notation}
+
+\renewcommand{\pen}{g}
+\renewcommand{\logmarg}[1][]{\ell}
+
+\begin{document} 
+\begin{myText}
+
+Assuming that the A step of the SAEM in the general context is written : 
+
+$$Q_{k+1} (\theta) = (1-u_k)Q_k (\theta) + u_k \logcomp(\theta; \varlat[^{(k)}];\varobs)$$
+
+where $\logcomp = \log\logcomp$, $\varlat$ is some latent variable and $\varobs$ the observation.
+
+
+\begin{prop}
+    $$Q_{k+1} (\theta) = \left(\pro l1{k+1} (1-u_{k+1})Q_l (\theta)\right) + \som l1{k+1} \left(\pro hl{k+1} (1-u_h)\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)$$
+\end{prop}
+
+\begin{dem}
+
+    Let's say that the recurrence proposition is the following
+    $$\mc P_k : "Q_{k+1} (\theta) = \left(\pro l1{k+1} (1-u_l)Q_l (\theta)\right) + \som {l+1}1{k} \left(\pro hl{k+1} (1-u_h)\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)"$$ 
+
+    For $k=0$, we have obviously that : $Q_1 = (1-u_1)Q_0(\theta) + u_1 \logcomp(\theta; \varlat[^{(l)}];\varobs) $ so $\mc P_0$ true !
+
+    Let be a certain $k\geq 0$, suppose that $\mc P_k$ is true, we have : 
+
+    \begin{align*}
+        Q_{k+2} 
+        =& (1-u_{k+2}) Q_{k+1} + u_{k+2} \logcomp(\theta; \varlat[^{(k+2)}];\varobs)
+        \\
+        =& (1-u_{k+2}) \left(\pro l1{k+1} (1-u_l)Q_l (\theta)\right) 
+         \\ &+  (1-u_{k+2})\som {l+1}1{k} \left(\pro hl{k+1} (1-u_h)\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs) 
+         \\ &+ u_{k+2}\logcomp(\theta; \varlat[^{(k+2)}];\varobs)  
+        \\
+        =& \left(\pro l1{k+2} (1-u_l)Q_l (\theta)\right) 
+         + \som {l+1}1{k+1} \left(\pro hl{k+2} (1-u_h)\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)
+    \end{align*}
+\end{dem}
+
+Compared to the number of iterations $K$ of the SAEM the computation of $\logcomp$ takes a constant time, in $O(n)$ with $n$ denoting the number observation. Computing $Q_k$ takes about one factorial time $O(kn)$. To compare, the calculation of step S following a one step MCMC procedure, if we denote by $n$ the number of observation is compute in $O(n^2)$
+
+\begin{dem}
+
+\end{dem}
+
+
+
+
+
+
+\end{myText}
+\end{document}

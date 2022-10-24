@@ -1,0 +1,841 @@
+%
+% Created by Antoine caillebotte
+% For any problem or incompatibility, do not hesitate to contact me at caillebotte.antoine@gmail. or on discord SciurusAberti#6880
+% This package is "just" an assembly package and some personal commands for writing articles and creating beamer
+% You will not find original content
+%
+\ProvidesPackage{myBelovedPackage}
+
+%=====================================%
+%------- Definition des keyval -------%
+%=====================================%
+\RequirePackage{kvoptions-patch} %patch pour avoir des parametres du type rgb
+\usepackage{xkeyval}
+
+\usepackage{xifthen}% Pour faire des conditions
+\newcommand{\ifequalselse}[4]{\ifthenelse{\equal{#1}{#2}}{#3}{#4}}
+\newcommand{\ifequals}[3]{\ifequalselse{#1}{#2}{#3}{}}
+\newcommand{\ifnotequals}[3]{\ifequalselse{#1}{#2}{}{#3}{}}
+
+%==================================%
+%------- Options du package -------%
+%==================================%
+\newif\if@englishVersion \@englishVersionfalse % Titre en anglais ou en français
+\newif\if@printVersion \@printVersionfalse % noir et blanc OU couleur
+\newif\if@toc \@tocfalse % avec ou non un sommaire
+\newif\if@glossaries \@glossariesfalse % avec ou non un glossaire \gls \glslink \newglossaryentry
+\newif\if@boxedEnv \@boxedEnvfalse % avec ou non le boxedEnv
+\newif\if@numberedpage \@numberedpagefalse % avec ou non le numero de page
+\newif\if@titleFormat \@titleFormatfalse % avec ou non les formats personnalisé des parties/chapitres/section/etc
+\newif\if@beamer \@beamerfalse
+\newif\if@hideSection \@hideSectiontrue
+\newif\if@multiFile \@multiFilefalse % Chargement du mode multiFile, il y a la possibilité de pré des choses en créant une fonction \preLoading
+
+%------- Déclaration des options -------%
+\DeclareOption{english}{\@englishVersiontrue }
+\DeclareOption{printVersion}{\@printVersiontrue }
+\DeclareOption{toc}{\@toctrue }
+\DeclareOption{glossaries}{ \@glossariestrue }
+\DeclareOption{boxedEnv}{ \@boxedEnvtrue }
+\DeclareOption{numbering}{\@numberedpagetrue}
+\DeclareOption{titleFormat}{\@titleFormattrue}
+\DeclareOption{beamer}{\@beamertrue}
+\DeclareOption{hideSection}{\@hideSectionfalse}
+\DeclareOption{multiFile}{ \@multiFiletrue  } % Best loaded last in the preamble 
+
+\DeclareOption*{\PackageWarning{myBelovedPackage}{Unknown ‘\CurrentOption’}}
+\ProcessOptions\relax %Compilation
+
+%===========================================%
+%------- Gestion du package subfiles -------%
+%===========================================%
+\if@glossaries \usepackage{glossaries} \fi
+\if@multiFile \usepackage{subfiles} \fi
+
+\if@englishVersion
+    \usepackage[english]{babel}%gestion de l'anglais
+    \newcommand\textDefi{Definition}
+    \newcommand\textProp{Property}
+    \newcommand\textTheo{Theorem}
+    \newcommand\textCoro{Corollary}
+    \newcommand\textLemma{Lemma}
+    \newcommand\textConcluded{Conclusion}
+    \newcommand\textEx{Example}
+    \newcommand\textRem{Remark}
+    \newcommand\textRems{Remarks}
+    \newcommand\textDem{Proof}
+    \newcommand\textSommaire{Contents}
+\else
+    \usepackage[french]{babel}%gestion du français
+    \newcommand\textDefi{Définition}
+    \newcommand\textProp{Propriété}
+    \newcommand\textTheo{Théorème}
+    \newcommand\textCoro{Corollaire}
+    \newcommand\textLemme{Lemme}
+    \newcommand\textConclu{Conclusion}
+    \newcommand\textEx{Exemple}
+    \newcommand\textRem{Remarque}
+    \newcommand\textRems{Remarques}
+    \newcommand\textDem{Démonstration}
+    \newcommand\textSommaire{Sommaire}
+\fi
+
+%=======================================%
+%------- Définition des couleurs -------%
+%=======================================%
+% Color for all the package : section, chapter color etc also for the boxed env and the personalize itemize env
+\newcommand{\tc}[2]{\textcolor{#1}{#2}}
+
+\newcommand{\tcg}[1]{\textcolor{green}{#1}}
+\newcommand{\tcr}[1]{\textcolor{red}{#1}}
+\newcommand{\tcb}[1]{\textcolor{blue}{#1}}
+\newcommand{\tco}[1]{\textcolor{orange}{#1}}
+\newcommand{\tcv}[1]{\textcolor{violet}{#1}}
+
+\if@beamer \else %Temporaire
+    \usepackage[dvipsnames]{xcolor}
+\fi
+
+\define@key{myColor}{blue}{
+    \definecolor{blue}{RGB}{#1} }
+\define@key{myColor}{red}{
+    \definecolor{red}{RGB}{#1} }
+\define@key{myColor}{violet}{
+    \definecolor{violet}{RGB}{#1} }
+\define@key{myColor}{green}{
+    \definecolor{green}{RGB}{#1}}
+\define@key{myColor}{orange}{
+    \definecolor{orange}{RGB}{#1} }
+%Beamer color 
+\define@key{myColor}{fg}{
+    \definecolor{main.fg}{RGB}{#1} }
+\define@key{myColor}{bg}{
+    \definecolor{main.bg}{RGB}{#1} }
+    
+\definecolor{todoOrange}{RGB}{255,128,0}
+%Commande pour modifier les couleurs
+\newcommand{\setmyColor}[1][]{ \setkeys{myColor}{#1} }
+
+%default
+\if@printVersion
+    \setmyColor[ blue = {0,0,0}, 
+                 red = {0,0,0}, 
+                 violet = {0,0,0}, 
+                 green = {0,0,0},
+                 orange = {0,0,0},
+                 fg = {126,12,110},
+                 bg = {255,255,255}]
+\else %Couleur pastelle
+    \setmyColor[ blue = {16,38,147},
+                 red = {255,46,23}, 
+                 violet = {175,0,175},
+                 green = {0,171,79},
+                 orange = {255,128,0},
+                 fg = {126,12,110},
+                 bg = {255,255,255}]
+\fi
+
+%----- set margin -----%
+\usepackage{geometry}
+\newcommand{\margin}[2]{\geometry{  left = #1,
+                                    right = #1,
+                                    top = #2,
+                                    bottom = #2} }
+
+\newcommand{\newmargin}[2]{\newgeometry{  left = #1,
+                                          right = #1,
+                                          top = #2,
+                                          bottom = #2} }
+
+\newcommand{\restoremargin}{\restoregeometry}
+%=====================================%
+%------- Package en tout genre -------%
+%=====================================%
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[nomath]{kpfonts}
+
+\if@beamer\else %beamer aime pas todonotes
+    \usepackage{todonotes}% pour faire des \todo
+    \newcommand{\afaire}[1]{\todo[inline, color = todoOrange]{#1}}
+\fi
+
+
+\usepackage{microtype} %amélioration du texte
+
+%\usepackage{tcolorbox} %Suppression du 03/02/2022
+\usepackage{graphicx} %gestion des images 
+\usepackage{shadow} %for beloved \shabox <3
+\usepackage{caption} % \captionsetup
+\usepackage{capt-of} % because I hate figure floats and env floats, they don't make sense to me, so I use \captionof
+\usepackage{subfigure}
+
+
+\newcommand{\myCaptionGraphics}[4][]
+{
+    \begin{center}
+        \captionsetup{hypcap=false}
+        \fbox{\includegraphics[#1]{#2}}
+        \captionof{figure}{#3}\label{#4}
+    \end{center}
+}
+
+
+\newcommand{\myGraphics}[3][]
+{
+    \begin{center}
+        \captionsetup{hypcap=false}
+        \fbox{\includegraphics[#1]{#2}}
+        \captionof{figure}{#3}
+    \end{center}
+}
+
+\usepackage{wrapfig}
+\newcommand{\wrapminipage}[3][i]{
+    \begin{wrapfigure}{#1}{#2}
+        \begin{minipage}{#2}
+            #3
+        \end{minipage}
+    \end{wrapfigure}
+}
+
+\usepackage{boldline} % \hlineB
+\usepackage{diagbox} %\diagbox in tabular
+\usepackage{multirow} % plusieurs ligne dans un tableau
+\usepackage{multicol} %faire du multi colonne sur une page
+
+\setlength{\unitlength}{1cm}
+%\setlength{\parindent}{0em}%indentation des paragraphes
+
+
+
+
+
+\usepackage[ruled,linesnumbered]{algorithm2e}
+\SetKwInOut{Require}{Require}
+\SetKw{Initialize}{Initialize}
+
+
+\newenvironment{myAlgorithm}[1][\textwidth]
+{ \begin{minipage}{#1} \begin{algorithm}[H]
+}{\end{algorithm}\end{minipage} }
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% Personnalisation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\tinypage}[3][]{
+\ifequals{#1}{center}{\begin{center}}
+\begin{minipage}{#2} #3 \end{minipage}
+\ifequals{#1}{center}{\end{center}} }
+
+\newcommand{\nextminipage}[2][nextto]{
+    \ifequals{#1}{nextto}
+    {%alors on colle les minipages : next to
+        \end{minipage}\hspace{1mm}\begin{minipage}[t]{#2} 
+    }
+    \ifequals{#1}{under}
+    {% en dessous
+        \end{minipage}
+        
+        \begin{minipage}[t]{#2} 
+    }
+}
+
+%=========================================%
+%------- Environnement de document -------%
+%=========================================%
+\newcommand{\Sommaire}{{
+  \newpage \thispagestyle{empty}
+  {
+    \hypersetup{linkcolor=black}
+    \setcounter{secnumdepth}{3}
+    \tableofcontents\label{Sommaire}
+  }
+  \newpage 
+}}
+
+\newenvironment{myText}
+    {
+        \if@glossaries \printglossaries \fi
+        \if@toc \Sommaire \fi
+        \setcounter{page}{1}
+    }{
+    ~\label{endText}~
+    }
+
+%===========================%
+%------- Enumeration -------%
+%===========================%
+% Nouvelle environnement avec des itemize de couleur et bullet personnaliser
+%
+
+    \newcommand{\myBullet}[1][black]{\textcolor{#1}{$\bullet$}}
+
+\if@beamer\else
+    \usepackage{enumitem} %gestion des itemize
+    %Changement des labels des bullets, si vous etes pas content, faut demander à justine dot desousa6 at gmail dot com
+    \setlist[itemize,1]{label = $\bullet$}
+    \setlist[itemize,2]{label = \LARGE$\ast$}
+    
+    \newenvironment{myItemizebis}[1][]{
+        \setlist[itemize]{font = \color{#1}}
+        \begin{itemize}
+    }{  \end{itemize}}
+        
+    \newenvironment{myItemize}[1][black]{
+        \begin{myItemizebis}[#1]
+        }{\end{myItemizebis}}
+\fi
+
+%=======================================%
+%------- En-tête et pied de page -------%
+%=======================================%
+\if@beamer\else
+    \usepackage{lastpage, fancyhdr} %nombre de page %gestion des en-têtes
+    
+    \usepackage{fancyvrb} %fancy verbatime
+    \fancyhf{} %Pas de numerotation de page par defaut
+    
+    \newcommand{\fancystyle}{
+        \if@numberedpage
+            \pagenumbering{arabic}
+        \else
+            \pagenumbering{gobble} %Pas de numerotation
+        \fi
+    }
+    
+    \newcommand{\setrhead}[1]{%en tete droite
+        \pagestyle{fancy} %numérotation dans ce style
+        \fancystyle
+        \if@toc \rhead{#1 - \hyperref[Sommaire]{\textSommaire} }
+        \else   \rhead{#1}  \fi
+    	}
+    \newcommand{\setlhead}[1]{%en tete gauche
+        \pagestyle{fancy} %numérotation dans ce style
+        \fancystyle
+    	\lhead{#1}
+    	}
+    
+    \if@numberedpage
+        \pagestyle{fancy} %numérotation dans ce style
+        \fancystyle
+        \rfoot{Page \thepage / \hypersetup{linkcolor=black}\pageref{endText}}%pied de page
+    \else
+        \pagenumbering{gobble} %Pas de numerotation
+    \fi
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% Sections %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if@titleFormat
+
+    %\renewcommand{\clearpage}{} %pour ne pas sauter de page après un chapitre ou une partie
+    
+    \renewcommand\thesection{\arabic{section}}
+    \renewcommand\thesubsection{\arabic{section}.\arabic{subsection}}
+    \renewcommand\thesubsubsection{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+
+    \usepackage{titlesec}
+    %\titleformat{command}[shape]{format}{label}{sep}{before-code}[after-code]
+
+    \titleformat{\part}[display]
+    	{\bfseries\LARGE\color{violet}}{}{0mm}{\rule{\textwidth}{1pt}\\Chapitre \thepart- }
+    	[\rule{\textwidth}{0.3pt}]
+    
+    
+    %\titleclass{\chapter}{straight} %pas de pagebreak pour les chapitres
+    \titleformat{\chapter}[display]
+        {\bfseries\LARGE\color{violet}}{}{0mm}{\rule{\textwidth}{1pt}\\Chapitre \thechapter-}
+    	[\rule{\textwidth}{0.3pt}]
+    
+    \titleformat{name=\chapter, numberless}
+     {\normalfont\bfseries\Huge}{}{0pt}{}
+    
+    \titleformat{\section}[hang]
+    {\large\bfseries\color{red}}
+    {~~~~~~~~\thesection -}{0.5em}{}
+    
+    \titleformat{\subsection}[hang]
+    {\normalfont\bfseries\color{green}}
+    {~~\thesubsection)}{0.5em}{}
+    
+    \titleformat{\subsubsection}[hang]
+    {\normalfont\bfseries\color{blue}}
+    {~~\thesubsubsection)}{0.5em}{}
+    
+    
+    \titleformat{\paragraph}[hang]
+    {\normalfont\bfseries\color{violet}}
+    {}{0.5em}{}
+\fi
+
+\newcommand{\makeRemerciements}{
+    \newpage \thispagestyle{empty}
+
+    \begin{center}
+        \rule{80mm}{0.5mm} \\
+        \huge{Remerciements}\\
+        \rule[5mm]{80mm}{0.5mm}
+    \end{center}
+}
+
+\newcommand{\plagiat}[2][\today]{
+    \thispagestyle{empty}
+    \begin{minipage}{15cm}
+        \begin{center}
+            \rule{120mm}{0.5mm} \\
+            \LARGE{Déclaration d’intégrité relative au plagiat }\\
+            \rule[5mm]{120mm}{0.5mm}
+        \end{center}
+        \vspace{2cm}
+        \begin{center}
+        \begin{minipage}{10cm}
+        Je soussigné Caillebotte Antoine certifie sur l’honneur:
+        
+            \begin{myItemize}
+                \item Que les résultats décrits dans ce rapport sont l’aboutissement de mon travail.
+                \item Que je suis l’auteur de ce rapport.
+                \item Que je n’ai pas utilisé des sources ou résultats tiers sans clairement les citer et les référencer selon les règles bibliographiques préconisées. 
+            \end{myItemize}
+        \end{minipage}
+        \end{center}
+        \vspace{2cm}
+        \begin{center}
+            \begin{minipage}{11cm}
+                Je déclare que ce travail ne peut être suspecté de plagiat.
+                
+                \begin{center}
+                    \begin{minipage}{5cm}
+                        Date:\\ #1
+                    \end{minipage}
+                    \begin{minipage}[t]{5cm}
+                        Signature:\\ #2
+                    \end{minipage}
+                \end{center}
+            \end{minipage}
+        \end{center}
+        
+    \end{minipage}
+    
+}
+
+\newcommand{\fakeSection}[1]{
+    \phantomsection
+    \section*{#1}
+    \addcontentsline{toc}{section}{#1}
+}
+
+\renewcommand{\listfigurename}{Une liste des figures}
+\renewcommand{\listtablename}{Une liste des tableaux}
+
+\newenvironment{myAppendix}{ 
+    \newpage
+    \pagestyle{fancy}
+    \setcounter{subsection}{0}
+    \renewcommand\thesubsection{\Alph{subsection}}
+    
+    \fakeSection{Annexes}
+    \pagenumbering{Roman}
+    \rfoot{\thepage}
+}{}
+
+%============================================================%
+%================ Lecture du package de math ================%
+%============================================================%
+
+\usepackage{mathtools,latexsym,amssymb,mathabx} %amsmath mis à jour
+\usepackage{cancel} % pour rayer des formules etc
+\usepackage{dsfont} %Doublestroke symbole de mathématiques
+%=============================================================%
+\newcommand{\mbb}{\mathbb}
+\newcommand{\mc}{\mathcal}
+\newcommand{\mbf}{\mathbf}
+
+\renewcommand{\bf}{\textbf}
+\renewcommand{\it}{\textit}
+\everymath{\displaystyle}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% Ensembles algébriques %
+%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\setn}{\mathbb N}
+\newcommand{\setz}{\mathbb Z}
+\newcommand{\setq}{\mathbb Q}
+\newcommand{\setr}{\mathbb R}
+\newcommand{\setc}{\mathbb C}
+\newcommand{\setk}{\mathbb K}
+
+\newcommand{\nn}{{n\in\setn}}
+\newcommand{\kn}{{k\in \setn}}
+\newcommand{\ii}{{i\in I}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Normes & produits scalaires %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\tnorm}[1]{\left|\left\|#1\right\|\right|}
+\newcommand{\<}{\left\langle}
+\renewcommand{\>}{\right\rangle}
+\newcommand{\sca}[1]{\left\langle#1\right\rangle}
+\DeclareMathOperator{\tr}{Tr}
+
+%%%%%%%%%%%%%
+% Ensembles %
+%%%%%%%%%%%%%
+\newcommand{\lmid}[1]{ \left.#1\right| }
+\newcommand{\rmid}[1]{ \left| #1 \right.}
+\newcommand{\ldb}{\mathbb{[\![}}
+\newcommand{\rdb}{\mathbb{]\!]}}
+\newcommand{\lrdb}[2]{\mathbb{[\![}#1,#2\mathbb{]\!]}}
+\newcommand{\set}[2]{\left\{ #1, ..., #2 \right\}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% Probabilités %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\E}{\mathbb{E}} 
+\newcommand{\var}{\text{var}}
+
+\newcommand{\dnorm}[3]{
+    \ifequalselse{#1}{}{\def\mutmp{#3^2}}{\def\mutmp{(#3-#1)^2}}
+    \frac 1{\sqrt{2\pi#2}} \exp\left(\frac{-\mutmp}{2#2}\right)}
+    
+\newcommand{\dpois}[2]{\frac{#1^{#2}e^{-#1}}{#2!}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% Algèbre %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\restri}[2]{#1 _{| #2}}
+\newcommand{\som}[3]{\sum_{#1=#2} ^{#3} }
+\newcommand{\pro}[3]{\prod_{#1=#2} ^{#3} }
+\newcommand{\partiel}[2]{\frac{\partial #1}{\partial #2}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% Stack %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\stack}[1]{\begin{array}{llllllll} #1 \end{array}}
+\newcommand{\stackeq}[2][rrrrrrrrr]{\left\{\begin{array}{#1} #2 \end{array}\right.}
+
+\newcommand{\stackvec}[1]{\left(\begin{array}{cccccccccc} #1 \end{array}\right)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% Autres %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\lsup}[1]{{}^#1}
+\newcommand{\code}{\texttt}
+\newcommand{\matlab}{{\sc Matlab} }
+
+\newcommand{\veps}{\varepsilon}
+\newcommand{\vphi}{\varphi}
+\newcommand{\rond}{\circ}
+\newcommand{\un}{\mathds{1}}
+%\newcommand{\Rel}[2]{#1\mathcal{R}#2}
+\newcommand{\ub}[1]{\underbrace{#1}}
+\newcommand{\under}[2]{\underset{#2}{#1}}
+
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\diag}{diag}
+\DeclareMathOperator*{\vect}{vect}
+\DeclareMathOperator*{\erf}{erf}
+\DeclareMathOperator*{\sign}{sign}
+
+\newcommand{\fct}[4]{: \left|  \begin{array}{ccl} #1 & \longrightarrow &#2 \\    #3 & \longmapsto & #4 \\  \end{array} \right.}
+%=============================================================%
+
+%===============================================%
+%================ Fin des maths ================%
+%===============================================%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% tikz %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{tikz}
+\usetikzlibrary{tikzmark}
+\newcommand{\tikzm}[2]{\tikzmarknode{#1}{#2}}
+
+\usepackage[mode=buildnew]{standalone}
+%pour charger des tikz pictures
+\newcommand{\myTikz}[3][]
+{
+    \begin{center}
+        \captionsetup{hypcap=false}
+        \fbox{\includestandalone[#1]{#2}}
+        \captionof{figure}{#3}
+    \end{center}
+}
+
+\if@boxedEnv
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% boxed environnement %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[tikz]{bclogo}
+\renewcommand \logowidth {10pt}
+\renewcommand \styleSousTitre[1]{\textsl{(#1)}}
+
+\newcommand{\findem}{\hfill \textcolor{violet}{$\square$} }
+
+\newcommand{\exemple}[1] { \textit{\textcolor{blue}{\textEx :}} #1}
+\newcommand{\rema}[2][\textRem :]{ \textit{\textcolor{blue}{#1}} #2}
+     
+\newenvironment{mySnakeEnv}[4]{  \begin{bclogo}[noborder = true,
+                                        logo = #3,
+                                        marge = 1,
+                                        barre = snake,
+                                        couleurBarre = #4,
+                                        sousTitre = \textcolor{#4}{#1}]
+                                        {\textcolor{#4}{#2}}
+                    }{\end{bclogo}    }
+
+%Exemple
+\newenvironment{ex}[1][]{ \begin{mySnakeEnv}{#1}{\textEx}{\bcbook}{blue}
+    }{\end{mySnakeEnv} }
+%Remarque.s
+\newenvironment{rem}[1][]{ \begin{mySnakeEnv}{#1}{\textRem}{\bcinfo}{blue}
+    }{\end{mySnakeEnv} }
+\newenvironment{rems}[1][]{ \begin{mySnakeEnv}{#1}{\textRems}{\bcinfo}{blue}
+    }{\end{mySnakeEnv} }
+%Demonstration
+\newenvironment{dem}[1][]{ \begin{mySnakeEnv}{#1}{\textDem}{\bcbombe}{violet}
+    }{\findem \end{mySnakeEnv} }
+     
+\newenvironment{myBoxedEnv}[4][]{  \begin{bclogo}[ arrondi = 0.1pt , 
+                                        logo = #3, 
+                                        marge = 1,
+                                        couleurBarre = #4,
+                                        ombre = true,
+                                        epOmbre = 0.2,
+                                        couleurOmbre = #4,
+                                        sousTitre = \textcolor{#4}{#1}]
+                                        {\textcolor{#4}{#2}}
+                    }{\end{bclogo}    }
+%Définition
+\newenvironment{defi}[1][]{ \begin{myBoxedEnv}[#1]{\textDefi :}{\bctrefle}{green}
+    }{\end{myBoxedEnv} }
+%Propriété
+\newenvironment{prop}[1][]{ \begin{myBoxedEnv}[#1]{\textProp}{\bccube}{red}
+    }{\end{myBoxedEnv} }
+%Théorème
+\newenvironment{theo}[1][]{ \begin{myBoxedEnv}[#1]{\textTheo}{\bcicosaedre}{red}
+    }{\end{myBoxedEnv} }
+%Corolaire
+\newenvironment{coro}[1][]{ \begin{myBoxedEnv}[#1]{\textCoro}{\bcdodecaedre}{red}
+    }{\end{myBoxedEnv} }
+%Lemme
+\newenvironment{lemme}[1][]{ \begin{myBoxedEnv}[#1]{\textLemme}{\bcoctaedre}{red}
+    }{\end{myBoxedEnv} }
+%Conclusion
+\newenvironment{conclu}[1][]{ \begin{myBoxedEnv}[#1]{\textConclu :}{\bclampe}{red}
+    }{\end{myBoxedEnv} }
+%=============================================================%
+\fi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% Page de garde %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\mailRef}[4][]{\href{mailto:#4}{#3 \textsc{#2} \ifnotequals{#1}{}{$^{#1}$} }}
+
+\newcommand{\pageDeGarde}[7]{
+    \begin{titlepage}\center
+    
+        % --- Logo avant le titre --- %
+        \begin{figure}
+            \begin{center}
+                #6
+            \end{center}
+        \end{figure}
+        
+        % --- sur titre -- %
+        \textsc{\LARGE #2}\\ \vfill
+        % --- titre --- %
+        \rule[5mm]{\textwidth}{0.5mm} \\ \vfill
+        { \huge \bfseries\centering #1}\\ \vfill
+        \rule[5mm]{\textwidth}{0.5mm} \\
+        
+        % --- auteur --- %
+        \begin{minipage}{0.4\textwidth}
+        	\begin{flushleft} \large
+        		\emph{Auteur :}\\ #3
+        	\end{flushleft}
+        \end{minipage}
+        \begin{minipage}{0.4\textwidth}
+        	\begin{flushright} \large
+        		\emph{Superviseurs:} \\ #4
+        	\end{flushright}
+        \end{minipage}\\
+        \begin{center}
+            #5
+        \end{center}\vfill
+        % --- logo de fin --- %
+    	\rule{0.8\textwidth}{0.5mm} \vfill
+    	    #7  \vfill
+        {\large \today}
+    \end{titlepage}
+    \newpage
+}
+%=============================================================%
+
+
+
+
+%Une fois tout les packages chargés : 
+\if@beamer%gestion des références croisées
+    \usepackage{hyperref}
+\else
+    \usepackage{hyperref, cleveref}
+\fi
+
+\newcommand{\loadbiblatex}[2][]{
+    \usepackage[#1]{biblatex}%biblio
+    \usepackage{csquotes} %Gestion citation plus complexe
+    \addbibresource{#2}
+ 
+    \DeclareFieldFormat{citehyperref}{%
+        \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested links
+        \bibhyperref{##1}}
+ 
+    \DeclareFieldFormat{textcitehyperref}{%
+        \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested links
+        \bibhyperref{%
+            ##1%
+            \ifbool{cbx:parens}
+            {\bibcloseparen\global\boolfalse{cbx:parens}}
+            {}}}
+    
+    \savebibmacro{cite}
+    \savebibmacro{textcite}
+    
+    \renewbibmacro*{cite}{%
+        \printtext[citehyperref]{%
+            \restorebibmacro{cite}%
+            \usebibmacro{cite}}}
+    
+    \renewbibmacro*{textcite}{%
+        \ifboolexpr{
+            ( not test {\iffieldundef{prenote}} and
+            test {\ifnumequal{\value{citecount}}{1}} )
+            or
+            ( not test {\iffieldundef{postnote}} and
+            test {\ifnumequal{\value{citecount}}{\value{citetotal}}} )
+        }
+        {\DeclareFieldAlias{textcitehyperref}{noformat}}
+        {}%
+        \printtext[textcitehyperref]{%
+            \restorebibmacro{textcite}%
+        \usebibmac  
+}
+%\usepackage{biblatex, csquotes} %Citation et biblio
+\newcommand{\citea}[1]{\citeauthor{#1}\cite{#1}}
+
+
+
+ro{textcite}}}
+
+
+
+
+
+
+\if@beamer
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% Package Beamer %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\mode<presentation>
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ==== Couleur principale === %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamercolor{structure}{fg = main.fg, bg = main.bg}
+\setbeamercolor{palette primary}{fg = structure.bg, bg = structure.fg}
+
+% Palette use in : footline
+\setbeamercolor{palette secondary}{fg = structure.bg, bg = structure.fg!75!black}
+                                   
+% \setbeamercolor{palette tertiary}{fg = white, bg = structure.fg!50!black}
+                                  
+% Palette use in : sidebar,
+\setbeamercolor{palette quaternary}{fg = structure.bg, bg = structure.fg!50!black}
+
+%%%%%%%%%%%%%%%%%
+% === Theme === %
+%%%%%%%%%%%%%%%%%
+\useinnertheme[shadow=true]{rounded} %block rounded
+\setbeamertemplate{navigation symbols}{} % suppression des symboles de nav
+% \useoutertheme[footline=authorinstitutetitle,subsection=false]{smoothbars}
+\useoutertheme[subsection = @hideSection]{smoothbars}
+
+\setbeamertemplate{caption}[numbered] %numerotation figure
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% === personalisation frame === %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamercolor{title}{parent = palette primary} % \setbeamerfont{title}{family=}
+% \setbeamercolor{frametitle}{bg = main, fg = white} % \setbeamerfont{frametitle}{size=\large}
+
+
+%%%%%%%%%%%%%%%%%%%%
+% === Footline === %
+%%%%%%%%%%%%%%%%%%%%
+% \makeatletter
+\setbeamertemplate{footline} 
+{
+    % === author and institute === %
+    \begin{beamercolorbox}[ht=2.5ex, dp=1.125ex,%shift pour le texte
+                           leftskip=.3cm, rightskip=.3cm] {palette primary} %couleur
+        %Contenue%
+        \leavevmode{\usebeamerfont{author in head/foot}\insertshortauthor}
+        \hfill
+        {\usebeamerfont{institute in head/foot}\usebeamercolor[fg]{palette primary}\insertshortinstitute}
+    \end{beamercolorbox}
+    
+    % === title and frame number === %
+    \begin{beamercolorbox}[ht=2.5ex,dp=1.125ex,%shift pour le texte
+                          leftskip=.3cm, rightskip=.3cm] {palette secondary}
+        %Contenue%
+        {\usebeamerfont{title in head/foot}\insertshorttitle}%
+        \hfill%
+        {\usebeamerfont{frame number}\usebeamercolor[fg]{palette secondary}\insertframenumber~/~\inserttotalframenumber}
+    \end{beamercolorbox}
+}
+% \makeatother
+
+\mode<all>
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% === Command special frame === %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\printtitlepage}[1][0.9]{
+    \begin{frame}[plain] \centering
+        \begin{minipage}{#1\textwidth}
+            \titlepage
+        \end{minipage}
+    \end{frame}
+}
+
+\newcommand{\beamertoc}[2][0.9]{
+    \begin{frame}[noframenumbering] \centering 
+        \begin{minipage}{#1\textwidth}
+            \tableofcontents[#2]
+        \end{minipage}
+    \end{frame}
+}
+
+\usepackage{calligra}
+\newcommand{\thankyou}[1][]{
+    \begin{frame}[noframenumbering]
+        \begin{center}
+            #1{\Huge\calligra Thank you for your attention!}
+        \end{center}
+    \end{frame}
+}
+
+%=============================================================%
+\fi
+
+\endinput
+

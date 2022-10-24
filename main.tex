@@ -1,0 +1,256 @@
+\documentclass[10pt,xcolor={dvipsnames}]{beamer}
+
+\usepackage[beamer]{myBelovedPackage}
+\setbeamersize{text margin left = 2mm, text margin right = 2mm} 
+
+
+\loadbiblatex[style = authoryear]{references.bib}
+
+\author[Antoine \textrm{Caillebotte}] % (optional, for multiple authors)
+{\bf{Antoine \textrm{Caillebotte}\inst{1}} \texorpdfstring{\\}{and}
+E.Kuhn\inst{1}\and S.Lemler\inst{2}\and E.Marchadier \inst{3}\and J.Legrand \inst{3} }
+
+\institute[Université Paris-Saclay, INRAE]
+{
+  \inst{1} Université Paris-Saclay, INRAE, MaIAGE, \inst{2} CentraleSupélec MICS \and \inst{3} INRAE Génétique Quantitative et Evolution Le Moulon
+}
+
+\title{Estimation and variable selection in joint model of survival times and longitudinal data}
+\subtitle{Application to the analysis of the effects of ostrinia attacks on the flowering date of corn}
+
+\date{12 september 2022}
+
+
+\titlegraphic{\includegraphics[width=3cm]{logos/S4P_logo.png} \hfill
+              \includegraphics[width=3cm]{logos/paris_saclay.jpg} \hfill
+              \includegraphics[width=3cm]{logos/INRAE.jpg} }
+
+
+\logo{\includegraphics[height=5mm]{logos/sigle_INRAE.jpg}}
+
+% === Couleur === %
+\setmyColor[ blue = {0, 0, 255},
+             violet = {163, 73, 164},
+             fg = {0, 163, 166}]
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\inrae}[1]{\tc{inraeCyan}{\bf{#1}}}
+\newcommand{\unknown}[1]{ \bf{\tc{inraeRed}{#1}}}
+\newcommand{\known}[1]{ \tc{BrickRed}{#1}}
+
+\input{notation}
+
+\begin{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% == == == Methodoly == == == %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\beamertoc{currentsection, sectionstyle = show}
+
+
+\section{General estimate}
+\begin{frame}{General estimate in latent variable joint model}
+        
+    \begin{equation}
+        \stackeq[lll]{ 
+            \hazard_\genolines (T_\genolines| U_\meltgenolines) 
+                = \hazard_0(T_\genolines) \exp(\beta ^T \tcg{U_\meltgenolines} + \tcb \alpha \tcr \nonlinearfct(T_\genolines;\vphi_\geno) )
+        \\  Y_\genolinesobs = \nonlinearfct(t_\varobs ; \vphi_\geno )  + \epsilon_\genolinesobs  }
+    \end{equation}
+        
+    \begin{center}
+        With : \fbox{$\tc{inraeRed}{\theta = (\sigma^2, \mu, \Omega, h_0^{(a,b)}, \beta, \alpha)}$}
+    \end{center}
+
+    \inrae{Marginal likelihood written with complete likelihood}
+
+    We denote by $\tc{inraeRed}\varobs$ the observation and $\varlat$ the unobserved latent variables
+        
+        $$\Lmarg (\theta|\varobs) = \int \Lcomp(\theta| \varobs; \varlat) d\varlat$$    
+        \tc{inraeRed}{Recall : $\varlat$ is not observed}
+    
+    
+    \inrae{Maximum likelihood Estimator (MLE)}
+        \begin{equation}\label{MLE}
+            \shabox{$\hat\theta = \argmax_{\theta\in\Theta} \Lmarg(\theta |\varobs) $}
+        \end{equation}
+\end{frame}
+
+\section{Expectation Maximisation}
+\begin{frame}{Expectation Maximisation algorithm}
+    \textit{Reference :} \cite{dempster_maximum_1977}
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\tco{\theta_0}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item \inrae{E-Step (Expectation)}, evaluate the quantity :
+            $$\tcb{Q(\theta|\tco{\theta_k)}} = \mbb E_{\tcg{\varlat} |(\varobs, \tco{\theta_k})}\left[\log \Lcomp(\tcb\theta;\tcg{\varlat}, \varobs) \big| \varobs, \tco{\theta_k}\right]$$
+            
+            \item \inrae{M-Step (Maximisation)}, compute :
+            $$\tcr{\theta_{k+1}} = \argmax_\theta \tcb{Q(\theta| \tco{\theta_k)}}$$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \theta = \tcr{\theta_K}$ with $K$ large enough
+    \end{itemize}
+    \bf{Problem :} $Q(\theta|\theta_k)$ can not be evaluated analytically %is not easy to compute% due to the lack of observation of $\vphi$
+\end{frame}
+
+\section{Stochastic Approximation EM}
+\begin{frame}{Stochastic Approximation EM algorithm}
+    \textit{Reference :} \cite{delyon_convergence_1999}
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\tco{\theta_0}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item \inrae{S-Step (Simulation)}, simulate $\tcg{\varlat^{(k)}}$ according to $p(\varlat|\varobs, \theta_k)$
+            \item \inrae{A-Step (stochastic Approximation)}, evaluate :
+            $$\tcb{Q_{k+1}(\theta)} = (1-u_k) Q_k(\tcb\theta) + u_k \log \Lcomp(\tcb\theta ; \tcg{\varlat^{(k)}}; \varobs)$$
+            
+            \item \inrae{M-Step (Maximisation)}, compute :
+            $$\tcr{\theta_{k+1}} = \argmax_{\tcb\theta \in \Theta} \tcb{Q_{k+1}(\theta)}$$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \theta = \tcr{\theta_K}$ with $K$ large enough
+    \end{itemize}
+    
+    {\centering\scriptsize where $(u_k)_{k\in \setn}$ such that $\som k1\infty u_k = \infty$ and $\som k1\infty u_k^2 < \infty$ }
+\end{frame}
+
+\begin{frame}{SAEM - Exponential family}
+
+    If we can write : $\log \Lcomp(\theta ; \varlat; \varobs) = \sca{\Phi(\theta); S(\varlat)}-\psi(\theta)$
+
+
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\tco{\theta_0}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item \inrae{S-Step (Simulation)}, simulate $\tcg{\varlat^{(k)}}$ according to $p(\varlat|\varobs, \theta_k)$
+            \item \inrae{A-Step (stochastic Approximation)}, evaluate :
+            $$\tcb{S_{k+1}} = (1-u_k) \tco{S_k} + u_k S(\tcg{\varlat^{(k)}})$$
+            
+            \item \inrae{M-Step (Maximisation)}, compute :
+            $$\tcr{\theta_{k+1}} = \argmax_{\tcb\theta \in \Theta} \left\{ \sca{\Phi(\tcb\theta);\tcb{S_{k+1}}}-\psi(\tcb\theta) \right\}$$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \theta = \tcr{\theta_K}$ with $K$ large enough
+    \end{itemize}
+    
+    {\centering\scriptsize where $(u_k)_{k\in \setn}$ such that $\som k1\infty u_k = \infty$ and $\som k1\infty u_k^2 < \infty$ }
+\end{frame}
+
+\section{Penalized SAEM algorithm}
+\begin{frame}{Estimate in joint model with covariates in high dimension}
+        
+    \begin{center}
+        We separate the parameters in small dimension and those in large dimension : \fbox{$\tc{inraeRed}{\theta = (\ub{\sigma^2, \mu, \Omega, b,\alpha}_{=\nu}, \beta)} = \tcr{\mathbf{(\nu,\beta)}}$}
+    \end{center}
+    
+    \inrae{Variable selection} $pen(\theta) = pen(\beta) = \regularization \norm{\beta}_1 = \regularization \som i1p \abs{\beta_i}$
+    
+    
+    %\inrae{Direct maximization of the MLE } $\hat  \nu = \argmax_{\nu\in \setr^d}\Lmarg(\nu, \hat\beta|\varobs)$
+    
+    \inrae{Penalized Estimator} 
+        \shabox{$(\hat \nu, \hat\beta) = \argmax_{\beta\in \setr^p,\nu\in\setr^d}\left\{ \Lmarg( \nu, \beta|\varobs) - pen(\beta)\right\}$}
+        
+\end{frame}
+
+\begin{frame}{Penalized SAEM algorithm}
+
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\tco{\theta_0 = (\nu_0, \beta_0)}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item \inrae{S-Step (Simulation)}, simulate $\tcg{\varlat^{(k)}}$ according to $p(\varlat|\varobs, \nu_k, \beta_k)$
+            \item \inrae{A-Step (stochastic Approximation)}, evaluate :
+            $$\tcb{S_{k+1}} = (1-u_k) \tco{S_k} + u_k S(\tcg{\varlat^{(k)}})$$
+            
+            \item \inrae{M-Step (Maximisation)}, compute :
+            $$\tcr{\nu_{k+1}} = \argmax_{\tcb\nu \in \setr^d} \left\{ \sca{\Phi(\tcb\nu, \tco{\beta_k});\tcb{S_{k+1}}}-\psi(\tcb\nu, \tco{\beta_k}) \right\}$$
+            $$\tcr{\beta_{k+1}} = \argmax_{\tcb\beta \in \setr^p} \left\{ \sca{\Phi(\tcr{\nu_{k+1}},\tcb\beta);\tcb{S_{k+1}}}-\psi(\tcr{\nu_{k+1}},\tcb\beta)  - pen(\tcb\beta)\right\}$$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \theta = (\tcr{\nu_K, \beta_K})$ with $K$ large enough
+    \end{itemize}
+    
+    {\centering\scriptsize where $(u_k)_{k\in \setn}$ such that $\som k1\infty u_k = \infty$ and $\som k1\infty u_k^2 < \infty$ }
+\end{frame}
+
+
+
+
+
+
+
+
+
+%=============================================================%
+%=============================================================%
+%=============================================================%
+\section{Proximal Gradient Descent}
+\newcommand{\fgrad}{f_{SA}}
+
+\begin{frame}{Normalized Gradient Descent}
+
+    Gradient descent on the function $\fgrad : \beta \mapsto \sca{\Phi(\nu_{k+1},\beta);S_{k+1}}-\psi(\nu_{k+1},\beta)$
+    \\ Where $\nu_{k+1}$ is the current value in the SAEM algorithm
+    \\ and $S_{k+1}$ is the stochastic approximation of the sufficient statistic
+    \\
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\beta_0 \in \setr^p$, the last compute of $\nu_{k+1}$ and $S_{k+1}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{itemize}
+            \item $\beta_k \leftarrow \beta_{k-1} - \gamma_k \frac{\nabla \fgrad(\beta_{k-1})}{\norm{\nabla \fgrad(\beta_{k-1})}_2}$
+            
+        \end{itemize}
+        \item \inrae{Return :} $\hat \beta = \tco{\beta_K}$ with $K$ large enough
+    \end{itemize}
+    
+    \bf{Problem :} $\fgrad(\beta) - pen(\beta)$ is not differentiable.
+    
+    
+    {\centering\scriptsize where $(\gamma_k)_{k\in \setn}$ is a sequence of steps and $\gamma_k > 0$ }
+    
+\end{frame}
+
+\begin{frame}{Proximal Operator}
+    
+    
+The proximal operator (\cite{moreau_fonctions_1962}; \cite{rockafellar_monotone_1976}) defined below extends the gradient descents to non-differentiable functions. 
+
+
+\inrae{Proximal operator}
+    $$prox_{pen}(\beta) = \argmin_{\beta'\in\setr^p} \left(pen(\beta') + \frac 12\norm{\beta-\beta'}_2^2 \right)$$
+
+
+With Lasso penalization, $pen(\beta) = \norm{\beta}_1$, we have the explicit form :
+
+\begin{equation}
+    \shabox{$(prox_{lasso}(\beta))_i = \stackeq[lr]{0 &\text{if } \abs{\beta_i}<\regularization \\ \beta_i - \regularization &\text{if } \beta_i \geq \regularization \\ \beta_i + \regularization &\text{if } \beta_i \leq -\regularization}$}
+\end{equation} 
+\end{frame}
+
+\begin{frame}{Proximal Gradient Descent}
+    
+    
+    \textit{Reference :} \cite{achab_learning_2017}
+    
+    \begin{itemize}
+        \item \inrae{Require :} Starting point $\beta_0 \in \setr^p$, the last compute of $\nu_{k+1}$ and $S_{k+1}$
+        \item At the iteration $0\leq k \leq K$:
+        \begin{enumerate}
+            \item  $\omega_k \leftarrow \beta_{k-1} - \gamma_k \frac{\nabla \fgrad(\beta_{k-1})}{\norm{\nabla \fgrad(\beta_{k-1})}_2}$ 
+        
+            \item $\beta_k \leftarrow prox_{\gamma_kpen}(\omega_k)$
+        \end{enumerate}
+        \item \inrae{Return :} $\hat \beta = \tco{\beta_K}$ with $K$ large enough
+    \end{itemize}
+    
+\end{frame}
+
+
+
+
+\end{document}

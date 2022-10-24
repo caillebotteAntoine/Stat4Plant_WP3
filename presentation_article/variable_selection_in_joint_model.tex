@@ -1,0 +1,47 @@
+\documentclass[10pt,xcolor={dvipsnames}]{beamer}
+
+\usepackage[beamer]{myBelovedPackage}
+\setbeamersize{text margin left = 2mm, text margin right = 2mm} 
+
+\author[Antoine \textrm{Caillebotte}]
+{\bf{Antoine \textrm{Caillebotte}\inst{1}}}
+
+\institute[Université Paris-Saclay, INRAE]
+{
+  \inst{1} Université Paris-Saclay, INRAE, MaIAGE
+}
+
+\title{Simultaneous variable selection for joint models of longitudinal and survival outcomes}
+\subtitle{Résumer d'article}
+
+\date{21 October 2022}
+
+\titlegraphic{\includegraphics[width=3cm]{./logos/S4P_logo.png} \hfill
+              \includegraphics[width=3cm]{./logos/Paris_saclay_white.jpg} \hfill
+              \includegraphics[width=3cm]{./logos/INRAE.jpg} }
+
+\logo{\includegraphics[height=5mm]{./logos/sigle_INRAE.jpg}}
+
+% === Couleur === %
+\setmyColor[ blue = {0, 0, 255},
+             violet = {163, 73, 164},
+             fg = {0, 163, 166}]
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\inrae}[1]{\tc{inraeCyan}{\bf{#1}}}
+\newcommand{\unknown}[1]{ \bf{\tc{inraeRed}{#1}}}
+\newcommand{\known}[1]{ \tc{BrickRed}{#1}}
+
+\input{notation}
+
+\begin{document}
+
+    \printtitlepage
+
+
+
+\end{document}
