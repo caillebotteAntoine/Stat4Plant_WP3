@@ -3,12 +3,95 @@
 
 \margin{3cm}{4cm}
 \setlhead{Antoine Caillebotte}
+
+\loadbiblatex[citestyle = authoryear]{references.bib}
 \input{notation}
+
+\renewcommand{\varobs}{Y}
+\renewcommand{\logmarg}{\ell}
+
 
 \begin{document} 
 \begin{myText}
 
-wesh ça va ?
+\subsection{Estelle}
+
+$$\hat \theta = \argmax_{\theta} log \Lmarg(\varobs;\theta) - \pen(\theta)$$
+
+with $\Lmarg(Y;\theta) = \int \Lcomp(\varobs,\varlat,\theta) d\varlat$
+
+
+\begin{myItemize}[violet]
+    \item Utiliser un EM
+    \\ E-Step : $Q_{\pen}(\theta|\theta_k) = \mbb E[\log f(Y,Z;\theta) -\pen(\theta) | Y; \theta_k$
+\end{myItemize}
+
+
+\newpage 
+
+
+We focus our thelves on the following maximization problem :
+
+$$\argmax_{\theta \in \setr^p} \{ \log \Lmarg(\varobs ; \theta) - \pen(\theta)\}$$
+
+With the marginal likelihood $\Lmarg(\varobs ; \theta) = \int \Lcomp(\varobs, \varlat ; \theta) d\varlat$ and  $\pen$ a penalization term. We will write $\log\Lmarg = \logmarg$ . We denote by $F$ the function we want to optimize : 
+
+\begin{center}\shabox{$\argmax_{\theta \in \setr^p} F(\theta) = \argmax_{\theta \in \setr^p}\{\logmarg(\theta) - \pen(\theta) \}$}\end{center}
+
+We assume the following hypothesis :
+\begin{myItemize}[blue]
+    \item $\pen : \setr^p \rightarrow \setr$ is convex and lower semi-continuous.
+    \item $\logmarg : \setr^p \rightarrow \setr$ is continuously differentiable on $\Theta = \{ \theta\in\setr^p | \abs{\logmarg(\theta)} + \pen(\theta) < \infty\}$
+\end{myItemize}
+
+We want to use an EM-algorithm to solve this optimization problem. The EM-algorithm is writen as : 
+
+\begin{myAlgorithm}[12cm]
+    \caption{Expectation Maximization}
+    \Require{Number of iterations $K\geq 1$}
+    \Initialize $\theta_0 \in \setr^d$ initial parameter value
+    
+    \For{$k=1$ \KwTo $K$}{
+        \myBullet[red] \bf{Step E :} \\
+         \quad computation of $Q(\theta |\theta_k) = \mbb E [ \log\Lcomp(\varobs, \varlat; \theta) | \varobs ; \theta_k]$
+         \\
+         \myBullet[red] \bf{Step M :} \\
+         \quad  maximization of $Q( . |\theta_k)$ : $\theta_{k+1} = \argmax_{\theta\in\setr^p} Q(\theta |\theta_k)$
+    }
+     \Return{$\hat \theta = \theta_K$}
+\end{myAlgorithm}
+
+\subsection{penalized-EM algorithm}
+
+The goal of the algorithm is to find a local maximum likelihood in a model that depends on unobserved latent variables. We want to detail here the transition to the maximum of a penalized likelihood.
+
+
+
+\section{retour au fonda du EM}
+
+
+
+
+The goal of the algorithm is to find a local maximum likelihood in a model that depends on unobserved latent variables. The EM focus on maximize the quantitie $Q(\theta|\theta_k)$ rather than directly improve $\log\Lmarg(Y;\theta)$ (\ref{dempster_maximum_1977}). We introduce the notation for the conditional density of $\varlat$ given $\varobs$ and $\theta$ : $p(\varlat|\varobs; \theta) = \frac{\Lcomp(\varobs, \varlat; \theta)}{\int \Lcomp(\varobs, \varlat; \theta) d\varlat}  = \frac{\Lcomp(\varobs, \varlat; \theta)}{\Lmarg(\varobs; \theta)}$. As $\log p(\varlat|\varobs; \theta) = \log \Lcomp(\varobs, \varlat; \theta) - \log \Lmarg(\varobs; \theta)$, the log marginal likelihood can be written : 
+
+$$\log\Lmarg(Y;\theta) = \log \Lcomp(\varobs, \varlat; \theta) - \log p(\varlat|\varobs; \theta)$$
+
+We take the expectation value of the observed data $\varlat$ given an estimate of the parameter $\theta'$. To do this we multiply by the density of $\varlat$ and integrate over $\varlat$ :
+
+\begin{align*}    
+\log\Lmarg(Y;\theta) =& \int\log \Lcomp(\varobs, \varlat; \theta)p(Z|Y,\theta_k)dz - \int \log p(\varlat|\varobs; \theta)p(Z|Y,\theta') dz
+\\ =&
+\mbb E[\log \Lcomp(\varobs, \varlat; \theta) | \varobs,\theta'] -
+\mbb E[\log p(\varlat|\varobs; \theta) | \varobs,\theta']
+\end{align*}
+
+We use the already established notation : $\stackeq[rcl]{ Q(\theta|\theta') &=& \mbb E[\log \Lcomp(\varobs, \varlat; \theta) | \varobs,\theta'] \\ H(\theta|\theta') &=& \mbb E[\log p(\varlat|\varobs; \theta) | \varobs,\theta']}$
+
+
+
+
+
+
 
 
 \end{myText}
