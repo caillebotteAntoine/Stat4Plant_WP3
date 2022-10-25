@@ -11,8 +11,35 @@
 \renewcommand{\logmarg}{\ell}
 
 
+\newenvironment{myEnumerate}[2][white]{
+    \setlist[enumerate]{%wide=0pt,
+                        %labelsep=0.5em,
+                        font=\large\color{#1}}
+    
+    \setlist[enumerate,1]{label = \colorbox{#2}{\makebox[0.75em][c]{\arabic*}}}
+    \setlist[enumerate,2]{label = \colorbox{#2}{\makebox[0.75em][c]{\alph*}}}
+    \setlist[enumerate,3]{label = \colorbox{#2}{\makebox[0.75em][c]{\roman*}}}
+
+    \begin{enumerate}
+    }{ \end{enumerate} }
+
 \begin{document} 
 \begin{myText}
+
+
+\section{Ce que j'ai fait}
+
+\begin{myEnumerate}{blue}
+    \item Travailler sur \cite{dempster_maximum_1977} en particulier la démonstration de convergence
+    \item \cite{fort_stochastic_2017} en particulier l'intégration du prox et de la penalization (prop 1)
+\end{myEnumerate}
+
+
+
+\begin{myEnumerate}{orange}
+    \item proposé un model qui ressemble à \cite{he_simultaneous_2015}
+    \item Finir démo complexité
+\end{myEnumerate}
 
 \subsection{Estelle}
 
@@ -46,7 +73,15 @@ We assume the following hypothesis :
 
 We want to use an EM-algorithm to solve this optimization problem. The EM-algorithm is writen as : 
 
-\begin{myAlgorithm}[12cm]
+\newpage
+\subsection{penalized-EM algorithm}
+
+The goal of the algorithm is to find a local maximum likelihood in a model that depends on unobserved latent variables :
+$$\argmax_{\theta\in\setr^p}\{\log\Lmarg(\varobs,\theta)\}$$
+
+The EM focus on maximize the quantitie $Q(\theta|\theta_k)$ rather than directly improve $\log\Lmarg(Y;\theta)$ (\cite{dempster_maximum_1977}).
+
+\begin{myAlgorithm}[10cm]
     \caption{Expectation Maximization}
     \Require{Number of iterations $K\geq 1$}
     \Initialize $\theta_0 \in \setr^d$ initial parameter value
@@ -61,42 +96,102 @@ We want to use an EM-algorithm to solve this optimization problem. The EM-algori
      \Return{$\hat \theta = \theta_K$}
 \end{myAlgorithm}
 
-\subsection{penalized-EM algorithm}
+\section{General properties from \cite{dempster_maximum_1977}}
 
-The goal of the algorithm is to find a local maximum likelihood in a model that depends on unobserved latent variables. We want to detail here the transition to the maximum of a penalized likelihood.
+We introduce the notation for the conditional density of $\varlat$ given $\varobs$ and $\theta$ : $p(\varlat|\varobs; \theta) = \frac{\Lcomp(\varobs, \varlat; \theta)}{\int \Lcomp(\varobs, \varlat; \theta) d\varlat}  = \frac{\Lcomp(\varobs, \varlat; \theta)}{\Lmarg(\varobs; \theta)}$. As $\log p(\varlat|\varobs; \theta) = \log \Lcomp(\varobs, \varlat; \theta) - \log \Lmarg(\varobs; \theta)$, the log marginal likelihood can be written : 
 
-
-
-\section{retour au fonda du EM}
-
-
-
-
-The goal of the algorithm is to find a local maximum likelihood in a model that depends on unobserved latent variables. The EM focus on maximize the quantitie $Q(\theta|\theta_k)$ rather than directly improve $\log\Lmarg(Y;\theta)$ (\cite{dempster_maximum_1977}). We introduce the notation for the conditional density of $\varlat$ given $\varobs$ and $\theta$ : $p(\varlat|\varobs; \theta) = \frac{\Lcomp(\varobs, \varlat; \theta)}{\int \Lcomp(\varobs, \varlat; \theta) d\varlat}  = \frac{\Lcomp(\varobs, \varlat; \theta)}{\Lmarg(\varobs; \theta)}$. As $\log p(\varlat|\varobs; \theta) = \log \Lcomp(\varobs, \varlat; \theta) - \log \Lmarg(\varobs; \theta)$, the log marginal likelihood can be written : 
-
-$$\log\Lmarg(Y;\theta) = \log \Lcomp(\varobs, \varlat; \theta) - \log p(\varlat|\varobs; \theta)$$
+\begin{center}
+    \fbox{$\log\Lmarg(Y;\theta) = \log \Lcomp(\varobs, \varlat; \theta) - \log p(\varlat|\varobs; \theta)$}
+\end{center}
 
 We take the expectation value of the observed data $\varlat$ given an estimate of the parameter $\theta'$. To do this we multiply by the density of $\varlat$ and integrate over $\varlat$ :
 
 \begin{align*}    
-\log\Lmarg(Y;\theta) =& \int\log \Lcomp(\varobs, \varlat; \theta)p(Z|Y,\theta_k)dz - \int \log p(\varlat|\varobs; \theta)p(Z|Y,\theta') dz
+\log\Lmarg(Y;\theta) =& \int\log \Lcomp(\varobs, \varlat; \theta)p(Z|Y,\theta')dz - \int \log p(\varlat|\varobs; \theta)p(Z|Y,\theta') dz
 \\ =&
 \mbb E[\log \Lcomp(\varobs, \varlat; \theta) | \varobs,\theta'] -
 \mbb E[\log p(\varlat|\varobs; \theta) | \varobs,\theta']
+\intertext{We use the already established notation : \fbox{$\stackeq[rcl]{ Q(\theta|\theta') &=& \mbb E[\log \Lcomp(\varobs, \varlat; \theta) | \varobs,\theta'] \\ H(\theta|\theta') &=& \mbb E[\log p(\varlat|\varobs; \theta) | \varobs,\theta']}$} }
+\\ \log\Lmarg(Y;\theta) =& Q(\theta|\theta') - H(\theta|\theta')
 \end{align*}
 
-We use the already established notation : $\stackeq[rcl]{ Q(\theta|\theta') &=& \mbb E[\log \Lcomp(\varobs, \varlat; \theta) | \varobs,\theta'] \\ H(\theta|\theta') &=& \mbb E[\log p(\varlat|\varobs; \theta) | \varobs,\theta']}$
+\tinypage[center]{8cm}{
+\begin{lemme}[Lemma 1 from \cite{dempster_maximum_1977}]
+    $$H(\theta', \theta) \leq H(\theta|\theta), \forall (\theta',\theta) \in \setr^p\times \setr^p$$
+\end{lemme}}
+    \afaire{Je n'ai pas réussi / approfondie la démo de ce lemme. Il se fait apparement avec des formules de Jensen  provenant d'un ouvrage que je n'ai pas trouvé en libre accès.}
 
+
+
+
+\begin{defi}[Generalized-EM algorithm (GEM)]
+    Let $M$ be a mapping : $\theta\mapsto M(\theta)$ from $\setr^p$ to $\setr^p$ such that each step $\theta_k\rightarrow\theta_{k+1}$ of the EM is defined by : 
+    $$\theta_{k+1} = M(\theta)$$
+    \\ An iterative algorithm with mapping $M$ is a \textbf{generalized-EM algorithm} if : 
+    $$Q(M(\theta)|\theta) \geq Q(\theta|\theta), \forall \theta\in\setr^p$$
+\end{defi}
+
+\tinypage[center]{10cm}{
 \begin{theo}[Theorem 1 of \cite{dempster_maximum_1977}]
-
-For every GEM algorithm (ie an iterative algorithm with mapping $M$ with $Q(M(\theta)|\theta) \geq Q(\theta|\theta), \forall \theta\in\setr^p$), we have : 
-
-$$\log\Lmarg(\varobs; M(\theta)) \geq \log\Lmarg(\varobs;\theta), \forall \theta\in\setr^p$$
-
-\end{theo}
+    For every GEM algorithm, we have : 
+    $$\log\Lmarg(\varobs; M(\theta)) \geq \log\Lmarg(\varobs;\theta), \forall \theta\in\setr^p$$
+\end{theo}}
 
 
+We want to introduce a penalty term in the likelihood and have the following optimization problem: 
+\begin{center}
+    \shabox{$\argmax_{\theta\in\setr^p} \{\log\Lmarg(\varobs,\theta) - \pen(\theta)$}
+\end{center}
 
+\citeauthor{fort_stochastic_2017} proposes the following algorithm to obtain a maximum likelihood. \textbf{The presence of the proximal operator is explained in the following} \ref{prox_arrival}.
+
+\begin{myAlgorithm}[12cm]
+    \caption{Expectation Maximization - penalized}\label{EM-pen}
+    \Require{Number of iterations $K\geq 1$; a sequence of steps $\gamma_k > 0$}
+    \Initialize $\theta_0 \in \setr^d$ initial parameter value
+    
+    \For{$k=1$ \KwTo $K$}{
+        \myBullet[red] \bf{Step E :} \\
+         \quad computation of $Q(\theta |\theta_k) = \mbb E [ \log\Lcomp(\varobs, \varlat; \theta) | \varobs ; \theta_k]$
+         \\
+         \myBullet[red] \bf{Step M :} \\
+         \quad  proximal-gradient descent : $\theta_{k+1} = \prox_{\theta\in\setr^p} \{\theta_k + \gamma_{n+1} \nabla Q(\theta |\theta_k) \}$
+    }
+     \Return{$\hat \theta = \theta_K$}
+\end{myAlgorithm}
+
+Where the $\prox$ operator is defined as :
+
+\tinypage[center]{10cm}{
+\begin{defi}[Proximal operator]
+    Let $\gamma$ be a positive step size,
+    $$prox_{,\gamma, \pen}(\theta) = \argmin_{\theta'\in\setr^p} \left(\pen(\theta') + \frac 1{2\gamma}\norm{\theta-\theta'}_2^2 \right)$$
+\end{defi}}
+
+\tinypage[center]{14cm}{
+\begin{defi}[Generalized-EM-penalized algorithm (GEM-pen)]
+    Let $M$ be a mapping : $\theta\mapsto M(\theta)$ from $\setr^p$ to $\setr^p$ such that each step $\theta_k\rightarrow\theta_{k+1}$ of the EM is defined by : 
+    $$\theta_{k+1} = M(\theta)$$
+    \\ An iterative algorithm with mapping $M$ is a \textbf{generalized-EM-pen algorithm} if : 
+    $$Q(M(\theta)|\theta)-\pen(M(\theta)) \geq Q(\theta|\theta)-\pen(\theta), \forall \theta\in\setr^p$$
+\end{defi}}
+
+\afaire{Je ne sais pas si cette définition est original au papier d'Ollier}
+
+
+\begin{prop}[Proposition 1 from \cite{fort_stochastic_2017}]\label{prox_arrival}
+    Let assume that $\pen : \setr^p \rightarrow \setr$ is convex and lower semi-continuous. We assume that there exists a constant $L>0$ such that $\nabla\Lcomp$ is $L$-Lipschitz  : $\abs{\nabla^2\Lcomp(\theta)} \leq L,\forall \theta\in\setr^p$.
+
+    Let $(\gamma_k)_{k\geq 0}$  be a positive sequence of step-size, \textbf{such that $\gamma_k\in ]0,1/L ], \forall k\geq 0$}.
+    \\Then the \autoref{EM-pen} is a GEM-algorithm for the maximization of $\log\Lmarg - \pen$
+\end{prop}
+
+\begin{dem}
+    
+\end{dem}
+
+We define : $Q_{pen}(\theta|\theta') = \mbb E[\log\Lcomp(\varobs,\varlat;\theta) | \varobs,\theta']  - pen (\theta)=
+ \mbb E[\log\Lcomp(\varobs,\varlat;\theta)  - pen (\theta) | \varobs,\theta']$
 
 
 

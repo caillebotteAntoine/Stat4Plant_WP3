@@ -35,16 +35,12 @@
 
 \makeatletter
 \newif\if@ShareVersion 
-
 \@ShareVersiontrue
 \@ShareVersionfalse
 
 \newcommand{\remark}[1]{\if@ShareVersion \else \tc{inraeRed}{#1} \fi}
-
-
 \newcommand{\myRemarks}[1]{
-    \if@ShareVersion        
-    \else 
+    \if@ShareVersion \else 
         { 
             \color{inraeRed}
             \begin{myEnumerate}{inraeRed}
@@ -52,7 +48,6 @@
             \end{myEnumerate}
         }
     \fi}
-    
 \makeatother
 
 \begin{document} 
