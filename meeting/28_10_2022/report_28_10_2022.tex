@@ -54,27 +54,8 @@ with $\Lmarg(Y;\theta) = \int \Lcomp(\varobs,\varlat,\theta) d\varlat$
 \end{myItemize}
 
 
-\newpage 
-
-
-We focus our thelves on the following maximization problem :
-
-$$\argmax_{\theta \in \setr^p} \{ \log \Lmarg(\varobs ; \theta) - \pen(\theta)\}$$
-
-With the marginal likelihood $\Lmarg(\varobs ; \theta) = \int \Lcomp(\varobs, \varlat ; \theta) d\varlat$ and  $\pen$ a penalization term. We will write $\log\Lmarg = \logmarg$ . We denote by $F$ the function we want to optimize : 
-
-\begin{center}\shabox{$\argmax_{\theta \in \setr^p} F(\theta) = \argmax_{\theta \in \setr^p}\{\logmarg(\theta) - \pen(\theta) \}$}\end{center}
-
-We assume the following hypothesis :
-\begin{myItemize}[blue]
-    \item $\pen : \setr^p \rightarrow \setr$ is convex and lower semi-continuous.
-    \item $\logmarg : \setr^p \rightarrow \setr$ is continuously differentiable on $\Theta = \{ \theta\in\setr^p | \abs{\logmarg(\theta)} + \pen(\theta) < \infty\}$
-\end{myItemize}
-
-We want to use an EM-algorithm to solve this optimization problem. The EM-algorithm is writen as : 
-
 \newpage
-\subsection{penalized-EM algorithm}
+\section{EM algorithm definition}
 
 The goal of the algorithm is to find a local maximum likelihood in a model that depends on unobserved latent variables :
 $$\argmax_{\theta\in\setr^p}\{\log\Lmarg(\varobs,\theta)\}$$
@@ -138,15 +119,34 @@ We take the expectation value of the observed data $\varlat$ given an estimate o
 \end{theo}}
 
 
+\section{Introduction of the proximal operator in the EM}
+
 We want to introduce a penalty term in the likelihood and have the following optimization problem: 
 \begin{center}
-    \shabox{$\argmax_{\theta\in\setr^p} \{\log\Lmarg(\varobs,\theta) - \pen(\theta)$}
+    \shabox{$\argmax_{\theta\in\setr^p} \{\log\Lmarg(\varobs,\theta) - \pen(\theta) \}$}
 \end{center}
 
-\citeauthor{fort_stochastic_2017} proposes the following algorithm to obtain a maximum likelihood. \textbf{The presence of the proximal operator is explained in the following} \ref{prox_arrival}.
+We want to use the EM algorithm but with the penalty term, as :\\
+\begin{myAlgorithm}[10cm]
+    \caption{Expectation Maximization - penalized}\label{EM-pen}
+    \Require{Number of iterations $K\geq 1$}
+    \Initialize $\theta_0 \in \setr^d$ initial parameter value
+    
+    \For{$k=1$ \KwTo $K$}{
+        \myBullet[red] \bf{Step E :} \\
+         \quad computation of $Q(\theta |\theta_k) = \mbb E [ \log\Lcomp(\varobs, \varlat; \theta) | \varobs ; \theta_k]$
+         \\
+         \myBullet[red] \bf{Step M :} \\
+         \quad  maximization of $Q( . |\theta_k)$ : $\theta_{k+1} = \argmax_{\theta\in\setr^p} \{Q(\theta |\theta_k) - pen(\theta)\}$
+    }
+     \Return{$\hat \theta = \theta_K$}
+\end{myAlgorithm}
+
+
+\citeauthor{fort_stochastic_2017} proposes the following algorithm to obtain a maximum likelihood. \textbf{The presence of the proximal operator is explained in the following} (see \ref{prox_arrival}).
 
 \begin{myAlgorithm}[12cm]
-    \caption{Expectation Maximization - penalized}\label{EM-pen}
+    \caption{proximal Expectation Maximization - penalized}\label{prox_EM}
     \Require{Number of iterations $K\geq 1$; a sequence of steps $\gamma_k > 0$}
     \Initialize $\theta_0 \in \setr^d$ initial parameter value
     
@@ -155,17 +155,17 @@ We want to introduce a penalty term in the likelihood and have the following opt
          \quad computation of $Q(\theta |\theta_k) = \mbb E [ \log\Lcomp(\varobs, \varlat; \theta) | \varobs ; \theta_k]$
          \\
          \myBullet[red] \bf{Step M :} \\
-         \quad  proximal-gradient descent : $\theta_{k+1} = \prox_{\theta\in\setr^p} \{\theta_k + \gamma_{n+1} \nabla Q(\theta |\theta_k) \}$
+         \quad  proximal-gradient descent : $\theta_{k+1} = \prox_{\gamma, \pen} \{\theta_k + \gamma_{n+1} \nabla_1 Q(\theta |\theta_k) \}$
     }
      \Return{$\hat \theta = \theta_K$}
 \end{myAlgorithm}
 
-Where the $\prox$ operator is defined as :
+where $\nabla_1$ denotes the gradient operator according to the first variable, and the $\prox$ operator is defined as :
 
 \tinypage[center]{10cm}{
 \begin{defi}[Proximal operator]
     Let $\gamma$ be a positive step size,
-    $$prox_{,\gamma, \pen}(\theta) = \argmin_{\theta'\in\setr^p} \left(\pen(\theta') + \frac 1{2\gamma}\norm{\theta-\theta'}_2^2 \right)$$
+    $$prox_{\gamma, \pen}(\theta) = \argmin_{\theta'\in\setr^p} \left(\pen(\theta') + \frac 1{2\gamma}\norm{\theta-\theta'}_2^2 \right)$$
 \end{defi}}
 
 \tinypage[center]{14cm}{
@@ -179,20 +179,97 @@ Where the $\prox$ operator is defined as :
 \afaire{Je ne sais pas si cette définition est original au papier d'Ollier}
 
 
-\begin{prop}[Proposition 1 from \cite{fort_stochastic_2017}]\label{prox_arrival}
-    Let assume that $\pen : \setr^p \rightarrow \setr$ is convex and lower semi-continuous. We assume that there exists a constant $L>0$ such that $\nabla\Lcomp$ is $L$-Lipschitz  : $\abs{\nabla^2\Lcomp(\theta)} \leq L,\forall \theta\in\setr^p$.
-
-    Let $(\gamma_k)_{k\geq 0}$  be a positive sequence of step-size, \textbf{such that $\gamma_k\in ]0,1/L ], \forall k\geq 0$}.
-    \\Then the \autoref{EM-pen} is a GEM-algorithm for the maximization of $\log\Lmarg - \pen$
+\begin{prop}[Proposition 1 from \cite{fort_stochastic_2017}]
+    Let assume that $\pen : \setr^p \rightarrow \setr$ is convex and lower semi-continuous,  
+    \\and that there exists a constant $L>0$ such that for any $\theta'\in\setr^p$ the gradient of $\theta \mapsto Q(\theta, \theta')$ is $L$-Lipschitz.
+    \\Let $(\gamma_k)_{k\geq 0}$  be a positive sequence of step-size, \textbf{such that $\gamma_k\in ]0,1/L ], \forall k\geq 0$}.
+    \\Then the \autoref{prox_EM} is a GEM-algorithm for the maximization of $\log\Lmarg - \pen$
 \end{prop}
 
+\newpage 
 \begin{dem}
+    \tinypage[center]{12cm}{
+    \begin{lemme}
+        Under the assumptions of \ref{prox_arrival}, for any $\gamma \in ]0,1/L]$ and $\theta, \theta'\in\setr^p\times \setr^p$
+        $$Q(\theta|\theta') \geq Q(\theta|\theta')
+                                    -\frac 1{2\gamma} \norm{\gamma \nabla_1 Q(\theta', \theta') +\theta' - \theta}^2
+                                    +\frac \gamma 2 \norm{\nabla_1 Q(\theta', \theta')}^2$$
+
+        where $\nabla_1$ denotes the gradient operator according to the first variable
+    \end{lemme}}
+    \begin{dem}
+    Let $\theta, \theta'\in\setr^p\times \setr^p$,
+    
+    Recall for any $\theta'\in\setr^p$ the gradient of $Q(., \theta')$ is $L$-Lipschitz, so the Taylor's theorem give to ordre 1 at $\theta'$
+
+    \begin{align*}
+        Q(\theta|\theta') 
+           & \geq Q(\theta'|\theta') + \sca{\nabla_1 Q(\theta', \theta') ; \theta-\theta'} + \frac 12 (\theta-\theta')^T \ub{\nabla_1 ^2 Q(\theta'|\theta')}_{\geq -L} (\theta-\theta')
+        \\ & \geq Q(\theta'|\theta') + \sca{\nabla_1 Q(\theta', \theta') ; \theta-\theta'} - \frac L2 \norm{\theta-\theta'}^2
+        \intertext{We conclude using the inequality : $2\sca{b,a} - \norm a^2 = \norm b^2 - \norm{a-b}^2$ with $a = \sqrt L(\theta-\theta')$ and $b = \frac 1{\sqrt L} \nabla Q(\theta'|\theta')$ }
+         Q(\theta|\theta')  & \geq Q(\theta'|\theta') + \frac 1{2L} \norm{\nabla_1 Q(\theta'|\theta')}^2 - \frac L2\norm{\frac 1L \nabla_1 Q(\theta'|\theta') + \theta - \theta'}^2
+    \end{align*}
+
+    Then with $\frac 1\gamma \geq L$ : \fbox{$Q(\theta|\theta')  \geq Q(\theta'|\theta') + \frac \gamma2 \norm{\nabla_1 Q(\theta'|\theta')}^2 - \frac 1{2\gamma}\norm{\frac 1L \nabla_1 Q(\theta'|\theta') + \theta - \theta'}^2$}
+    
+    \end{dem}
+
+    We place ourselves at iteration $k$ of a penalized EM with the current value $\theta' = \theta_k\times \setr^p$.
+    //By the above lemma, we have for any $\gamma \in ]0,1/L]$ and  $\theta \in\setr^p$, 
+    $$
+        Q(\theta|\theta_k) -\pen(\theta) 
+            \geq  Q(\theta_k|\theta_k) 
+                   + \frac \gamma2 \norm{\nabla_1 Q(\theta_k|\theta_k)}^2 
+                   - \frac 1{2\gamma}\norm{\gamma \nabla_1 Q(\theta_k|\theta_k) + \theta - \theta_k}^2 -\pen(\theta)
+    $$
+
+    Note that the equality case is achieve for $\theta = \theta_k$. 
+    So if we take the $\theta$ that achieve the maxima at the right-hands side of the inequality :
+    
+    \begin{equation}\label{prox_arrival} \stack{
+    \theta_{k+1} &= \argmax_{\theta\in\setr^p}\left\{ Q(\theta_k|\theta_k) + \frac \gamma2 \norm{\nabla_1 Q(\theta_k|\theta_k)}^2 - \tcr{\frac 1{2\gamma}\norm{\gamma \nabla_1 Q(\theta_k|\theta_k) + \theta - \theta_k}^2 -\pen(\theta)} \right\} 
+        \\ &= \argmin_{\theta\in\setr^p} \left\{ \tcr{\frac 1{2\gamma}\norm{\gamma \nabla_1 Q(\theta_k|\theta_k) + \theta - \theta_k}^2 -\pen(\theta) }\right\}
+        \\ & = \tcr{prox_{\gamma, \pen}\{\gamma \nabla_1 Q(\theta_k|\theta_k) + \theta_k \}  }  }
+    \end{equation}
+    
+    So for any $\theta_{k+1}$ maximizing the right-hand side of the inequality, it holds the inequality, for any $\theta\in\setr^p$
+    \begin{align*}
+        Q(\theta_{k+1}|\theta_k) -\pen(\theta_{k+1}) 
+        \geq & Q(\theta_k|\theta_k) 
+                   + \frac \gamma2 \norm{\nabla_1 Q(\theta_k|\theta_k)}^2 
+                   \\ &\qquad - \frac 1{2\gamma}\norm{\gamma \nabla_1 Q(\theta_k|\theta_k) + \theta_{k+1} - \theta_k}^2 -\pen(\theta_{k+1})
+   \\   \geq & Q(\theta_k|\theta_k) 
+                   + \frac \gamma2 \norm{\nabla_1 Q(\theta_k|\theta_k)}^2 
+                   \\ &\qquad - \frac 1{2\gamma}\norm{\gamma \nabla_1 Q(\theta_k|\theta_k) + \theta - \theta_k}^2 -\pen(\theta)
+    \end{align*}
+
+    In particular if we take $\theta = \theta_k$ for the far right-hand side of the inequality, we can conclude : 
+
+    \begin{center}
+        \shabox{$Q(\theta_{k+1}|\theta_k) -\pen(\theta_{k+1})  \geq Q(\theta_k|\theta_k) -\pen(\theta_k) $}
+    \end{center}
+
+    
+    
+        
+    \iffalse
+        \begin{equation}\label{prox_arrival} \stack{
+            \max_{\theta\in\setr^p}\{ Q(\theta|\theta') -\pen(\theta) \} &\geq Q(\theta'|\theta') + \frac \gamma2 \norm{\nabla_1 Q(\theta'|\theta')}^2
+            - \min_{\theta\in\setr^p} \left\{ \frac 1{2\gamma}\norm{\gamma \nabla_1 Q(\theta'|\theta') + \theta - \theta'}^2 -\pen(\theta) \right\}
+            \\ & \geq Q(\theta'|\theta') + \frac \gamma2 \norm{\nabla_1 Q(\theta'|\theta')}^2
+            - \tcr{\mbf{prox_{\gamma, \pen}(\gamma \nabla_1 Q(\theta'|\theta') + \theta)  }}          }
+        \end{equation}
+    \fi
+        
+    
+
+\label{prox_arrival}
     
 \end{dem}
 
-We define : $Q_{pen}(\theta|\theta') = \mbb E[\log\Lcomp(\varobs,\varlat;\theta) | \varobs,\theta']  - pen (\theta)=
- \mbb E[\log\Lcomp(\varobs,\varlat;\theta)  - pen (\theta) | \varobs,\theta']$
+\begin{rem}[on lipshitz]
 
+\end{rem}
 
 
 \end{myText}
