@@ -1,5 +1,5 @@
 
-# Dossier de partage du WP3 du projet Stat4Plant <a href='https://www.inrae.fr/'><img src='logos/INRAE.jpg' align="right" height="70" /></a>
+# Dossier de partage du WP3 du projet Stat4Plant <a href='https://www.inrae.fr/'><img src='logos/INRAE.jpg' align="right" height="50" /></a>
 
 <br />
 
