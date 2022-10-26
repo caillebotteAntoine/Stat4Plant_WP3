@@ -39,11 +39,8 @@ Where $(u_k)_{k\geq 1}$ is a step-size sequence such that $\forall k \in \setn, 
 
 \subsection{Standard SAEM in exponential context}
 
-We place ourselves in the framework of exponential families and write the complete likelihood as follows: \fbox{$\Lcomp[,\varobs](\theta) = h(\varobs, \varlat) + \sca{\Phi(\theta) ; S(\varobs,\varlat)}- \psi(\theta)$}. Then, we can write the A-step as : 
-$$S_{k+1} = (1-u_k) S_k + S(\varobs, \varlat_{k+1})$$
-
-%$$\stackeq{S_{k+1} &= (1-u_k) S_k + S(\varobs, \varlat_{k+1}) \\ H_{k+1} &= (1-u_k) H_k + h(\varobs, \varlat_{k+1})}$$
-
+We place ourselves in the framework of exponential families and write the complete likelihood as follows: \fbox{$\Lcomp[,\varobs](\theta) = \sca{\Phi(\theta) ; S(\varobs,\varlat)}- \psi(\theta)$}. Then, we can write the A-step as : 
+$$S_{k+1} = (1-u_k) S_k + u_k S(\varobs, \varlat_{k+1})$$
 
 The SAEM in the context of the exponential family can be written as follows: 
 
@@ -323,20 +320,6 @@ We introduce the notation $\Phi = ( \Phi_{1,1}, ..., \Phi_{2,1}, \Phi_2, \Phi_3,
     
     \findem
     
-\newpage
-
-\subsection{Derivation for gradient descent in inference}
-
-$$\begin{array}{rl}
-\zeta(\alpha, \beta) &= \som \geno 1 \maxgeno \som \lines 1 \maxlines \ub{\left(\tcr\beta ^T U_\meltgenolines + \tcr\alpha \nonlinearfct(T_\genolines; \vphi_\geno) - ba^{-b}\exp(\tcr\beta^T U_\meltgenolines)\int_0^{T_\genolines} s^{b-1} \exp(\tcr\alpha\nonlinearfct(s;\vphi_\geno)ds \right)}_{=\zeta_\genolines(\alpha, \beta)}
-\\  &=\som \geno 1 \maxgeno \som \lines 1 \maxlines \zeta_\genolines(\alpha, \beta)
-\end{array}$$
-
-\begin{align*}
-    \partiel{\zeta_\genolines(\alpha, \beta)}\beta &=  U_\meltgenolines - ba^{-b} U_\meltgenolines \exp(\tcr\beta^T U_\meltgenolines) \int_0^{T_\meltgenolines} s^{b-1} \exp(\tcr\alpha\nonlinearfct(s ; \vphi_\geno)) ds
-\end{align*}
-
-
 \end{myAppendix}
 
 \end{document}

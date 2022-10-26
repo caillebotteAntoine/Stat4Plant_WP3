@@ -26,41 +26,92 @@
 \begin{document} 
 \begin{myText}
 
+\begin{center}\Large{Compte rendu de travail pour le 28/10/2022} \end{center}
 
-\section{Ce que j'ai fait}
+\section{Ce que j'ai fait cette semaine}
 
 \begin{myEnumerate}{blue}
-    \item Travailler sur \cite{dempster_maximum_1977} en particulier la démonstration de convergence
-    \item \cite{fort_stochastic_2017} en particulier l'intégration du prox et de la penalization (prop 1)
+    \item En section \ref{complexity}, la formulation du calcul de $Q$ par récurrence ainsi qu'un petit paragraphe sur sa complexité.
+    \item En section \ref{EM} et \ref{dempster} j'ai travaillé  sur \cite{dempster_maximum_1977} en particulier la démonstration de convergence,
+    Je n'ai fait que reprendre, reformuler pour pouvoir l'assimiler. J'avais en particulier besoin de comprendre ce qu'était un GEM.
+    \bf{Vous pouvez omettre cette partie}
+    
+    \item En section \ref{proxsection}, j'ai détaillé l'intégration du proximal et de la pénalisation en reprenant  \cite{fort_stochastic_2017}.
+    
+    \item En section \ref{modelsection}, j'ai voulu par curiosité voir à quoi ressemblerait le modèle joint inspiré par \cite{he_simultaneous_2015}.
+    \tcr{J'ai également écrit une question de modélisation que je n'ai pas réussi à répondre seul !}
+    \item En annexe \ref{SARGDM}, j'ai remis l'algorithme corrigé du stage que je vous avez envoyé il y 2 semaines, Si jamais vous voulez comparer avec l'algo de la section \ref{proxsection}. Mais ce sont pour moi les mêmes  !
 \end{myEnumerate}
 
-
-
-\begin{myEnumerate}{orange}
-    \item proposé un model qui ressemble à \cite{he_simultaneous_2015}
-    \item Finir démo complexité
-\end{myEnumerate}
-
-\subsection{Estelle}
-
-$$\hat \theta = \argmax_{\theta} log \Lmarg(\varobs;\theta) - \pen(\theta)$$
-
-with $\Lmarg(Y;\theta) = \int \Lcomp(\varobs,\varlat,\theta) d\varlat$
-
-
-\begin{myItemize}[violet]
-    \item Utiliser un EM
-    \\ E-Step : $Q_{\pen}(\theta|\theta_k) = \mbb E[\log f(Y,Z;\theta) -\pen(\theta) | Y; \theta_k$
-\end{myItemize}
+pvi : J'ai crée un répertoir git de partage : \href{https://github.com/caillebotteAntoine/Stat4Plant_WP3/}{Stat4Plant\_WP3}
 
 
 \newpage
-\section{EM algorithm definition}
 
-The goal of the algorithm is to find a local maximum likelihood in a model that depends on unobserved latent variables :
+\section{SAEM without exponential family}\label{complexity}
+
+\bf{We wish to write here the approximation step in a general context according to the likelihood only.}
+
+Assuming that the A step of the SAEM in the general context is written : 
+
+$$Q_{k+1} (\theta) = (1-u_{k+1})Q_k (\theta) + u_{k+1} \logcomp(\theta; \varlat[^{(k+1)}];\varobs)$$
+
+where $\logcomp = \log\Lcomp$, $\varlat$ is some latent variable and $\varobs$ the observation.
+
+
+\begin{prop}
+    $$Q_{k+1} (\theta) = \left(\pro l1{k+1} (1-u_l)\right)Q_0 (\theta) + \som l1{k+1} \left(\pro hlk (1-u_{h+1})\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)$$
+\end{prop}
+
+\begin{dem}
+    Let us define the recurrence proposal according to our proposition. For $k=0$, we have obviously that : $Q_1 = (1-u_1)Q_0(\theta) + u_1 \logcomp(\theta; \varlat[^{(1)}];\varobs) $ so $\mc P_0$ true !
+
+    Let be for a certain $k\geq 0$, suppose that $\mc P_k$ is true, we have :
+
+    \begin{align*}
+        Q_{k+2} 
+        =& (1-u_{k+2}) Q_{k+1} + u_{k+2} \logcomp(\theta; \varlat[^{(k+2)}];\varobs)
+        \\
+        =& (1-u_{k+2}) \left( \pro l1{k+1} (1-u_l)\right)Q_0 (\theta)
+         \\ & + \som l1{k+1} \left(\pro hlk (1-u_{h+1})\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)
+         \\ & + u_{k+2}\logcomp(\theta; \varlat[^{(k+2)}];\varobs)  
+        \\
+        =& \left( \pro l1{k+2} (1-u_l)\right)Q_0 (\theta)
+              + \som l1{k+1} \left(\pro hl{k+1} (1-u_{h+1})\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)
+         \\ & + u_{k+2}\logcomp(\theta; \varlat[^{(k+2)}];\varobs)  
+        \\
+        =& \left( \pro l1{k+2} (1-u_l)\right)Q_0 (\theta)
+            + \som l1{k+2} \left(\pro hl{k+1} (1-u_{h+1})\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)
+    \end{align*}
+    QED
+\end{dem}
+
+So if we initiate $Q$ with $Q_0 = 0$, we have $Q_{k+1}(\theta) = \som l1{k+1} \left(\pro hlk (1-u_{h+1})\right) \times u_l \logcomp(\theta; \varlat[^{(l)}];\varobs)$. Suppose we want to run a SAEM for a mixed effect model with $N \times J$ observations where $N$ is the number of individuals and $J$ is the number of observations for each individual. Suppose that the mixed effect variables are of dimension $N$ and that the maximization step is in a constant time $O(1)$. Let’s say that the computation of \bf{$\logcomp$ takes a constant time} and depend only on the total number of observations so computation will be in $O(NJ)$. Achieve the approximation step, i.e., the computation of $Q_k$,  will take about a linear time $O(k\times NJ)$. To compare, the calculation of the simulation step, following a one-step MCMC procedure,  is computed in $O(N\times J)$ if it has been well coded and in the more casual case, i.e., without optimization procedures, in $O(N\times NJ)$.
+
+To conclude if we do a total of $K$ iteration of the SAEM, the complexity of all the approximation step will be $O(K^2 NJ)$. The simulation step is done in $O(KNJ$). \bf{This algorithm has a quadratic complexity in time depending on the number of iterations !}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\section{EM algorithm definition}\label{EM}
+
+The goal of the algorithm is to find a local maximum likelihood of a model that depends on unobserved latent variables :
 $$\argmax_{\theta\in\setr^p}\{\log\Lmarg(\varobs,\theta)\}$$
 
-The EM focus on maximize the quantitie $Q(\theta|\theta_k)$ rather than directly improve $\log\Lmarg(Y;\theta)$ (\cite{dempster_maximum_1977}).
+The EM focus on maximizing the quantity $Q(\theta|\theta_k)$ rather than directly improve $\log\Lmarg(Y;\theta)$ (\cite{dempster_maximum_1977}).
 
 \begin{myAlgorithm}[10cm]
     \caption{Expectation Maximization}
@@ -77,7 +128,7 @@ The EM focus on maximize the quantitie $Q(\theta|\theta_k)$ rather than directly
      \Return{$\hat \theta = \theta_K$}
 \end{myAlgorithm}
 
-\section{General properties from \cite{dempster_maximum_1977}}
+\section{General properties from \cite{dempster_maximum_1977}}\label{dempster}
 
 We introduce the notation for the conditional density of $\varlat$ given $\varobs$ and $\theta$ : $p(\varlat|\varobs; \theta) = \frac{\Lcomp(\varobs, \varlat; \theta)}{\int \Lcomp(\varobs, \varlat; \theta) d\varlat}  = \frac{\Lcomp(\varobs, \varlat; \theta)}{\Lmarg(\varobs; \theta)}$. As $\log p(\varlat|\varobs; \theta) = \log \Lcomp(\varobs, \varlat; \theta) - \log \Lmarg(\varobs; \theta)$, the log marginal likelihood can be written : 
 
@@ -119,7 +170,12 @@ We take the expectation value of the observed data $\varlat$ given an estimate o
 \end{theo}}
 
 
-\section{Introduction of the proximal operator in the EM}
+
+
+
+
+
+\section{Introduction of the proximal operator in the EM}\label{proxsection}
 
 We want to introduce a penalty term in the likelihood and have the following optimization problem: 
 \begin{center}
@@ -248,29 +304,194 @@ where $\nabla_1$ denotes the gradient operator according to the first variable, 
     \begin{center}
         \shabox{$Q(\theta_{k+1}|\theta_k) -\pen(\theta_{k+1})  \geq Q(\theta_k|\theta_k) -\pen(\theta_k) $}
     \end{center}
-
-    
-    
-        
-    \iffalse
-        \begin{equation}\label{prox_arrival} \stack{
-            \max_{\theta\in\setr^p}\{ Q(\theta|\theta') -\pen(\theta) \} &\geq Q(\theta'|\theta') + \frac \gamma2 \norm{\nabla_1 Q(\theta'|\theta')}^2
-            - \min_{\theta\in\setr^p} \left\{ \frac 1{2\gamma}\norm{\gamma \nabla_1 Q(\theta'|\theta') + \theta - \theta'}^2 -\pen(\theta) \right\}
-            \\ & \geq Q(\theta'|\theta') + \frac \gamma2 \norm{\nabla_1 Q(\theta'|\theta')}^2
-            - \tcr{\mbf{prox_{\gamma, \pen}(\gamma \nabla_1 Q(\theta'|\theta') + \theta)  }}          }
-        \end{equation}
-    \fi
-        
-    
-
-\label{prox_arrival}
     
 \end{dem}
 
-\begin{rem}[on lipshitz]
+\begin{rem}[on lipshitz hypo]
 
 \end{rem}
 
 
+
+
+
+
+
+
+
+
+
+
+\section{Model inspirer de \cite{he_simultaneous_2015}}\label{modelsection}
+
+Rappel du modèle
+
+\begin{myBoxedEnv}[final modeling]{Joint Model}{\bccrayon}{red}
+    
+    For any genotype $\foranygeno$ and observation $\foranyobs$
+    
+    \begin{equation}\label{jointmodel}
+        \stackeq[lll]{ 
+            \hazard_\geno (T_\geno|\mc M(T_\geno;\vphi_\geno), U_\geno) 
+                = \hazard_0(T_\geno) \exp(\beta ^T U_\geno + \alpha \nonlinearfct(T_\geno;\vphi_\geno) )
+        \\  Y_\genoobs = \nonlinearfct(t_\obs ; \vphi_\geno )  + \epsilon_\genoobs 
+        \\  \vphi_\geno \sim \mc N(\mu, \Omega) \quad  ;  \quad  \epsilon_\genoobs \sim \mc N(0,\sigma^2) }
+    \end{equation}
+    
+\end{myBoxedEnv}
+
+\afaire{Pourquoi prendre $m(T_\geno; \vphi_\geno)$ alors que c'est une data observer (il me semble) ? \\ Si on a $n_g$ observation pour le génotype $g$ on pourrait remplacer cela par $Y_{\geno,n_\geno}$ ?}
+
+Modèle par curiosité, inspirer de \cite{he_simultaneous_2015} :
+
+For the longitudinal outcome, we consider the following non-linear mixed effects model : 
+
+$$\stackeq[lll]{ Y_\genoobs =& \nonlinearfct(t_\obs ; \vphi_\geno )  + \epsilon_\genoobs
+                        \\   \vphi_\geno = &\beta_1 ^T X_{1\geno} + b_\geno^T \Gamma_1 Z_{1\geno} }
+                        \\ & \epsilon_\genoobs \sim \mc N(0,\sigma^2) ~;~ b_\geno \sim \mc N(0, I_q)$$
+
+where $\beta_1 \in \setr^p$ the first regression parameter, $\Gamma_1$ is a $q\times q$ lower triangular matrix.
+
+For the survival outcome, we consider a frailty model, defined as follows : 
+
+$$\hazard_\geno (T_\geno) = \hazard_0(T_\geno) \exp(\beta_2 ^T x_{2\geno} + b_\geno^T \Gamma_2 z_{2\geno})$$
+
+where $\hazard_0$ is the baseline hazard function, $\beta_2 \in \setr^p$ the second regression parameter, $\Gamma_2$ is a $q\times q$ lower triangular matrix.
+                        
+The combine observation will be $\mc O_\geno = (Y_\geno, X_{1\geno}, Z_{1\geno}, T_\geno, X_{2\geno}, Y_{2\geno})$
+
+\afaire{Je sais pas si ce que je viens décrire est possible ni si cela à un sens en modélisation, en tout computationnellement parlant il y a un avantage indégniable :  il n'y aura pas d'intégrale à calculer dans la likelihood !}
+
+
+
+
+
+
+
+
+
+
+
 \end{myText}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    \newpage
+    \printbibliography
+
+    \newpage
+    
+    \begin{myAppendix}
+
+        \subsection{SAEM with gradient descent step}
+            \subsubsection{Standard SAEM in exponential context}
+
+            Assuming we got observation written $\varobs$ with unobserved latent variable $\varlat$ in a model characterize by the parameter $\theta$. We denote by $\Lcomp$ the complete likelihood of $\varobs$. We place ourselves in the framework of exponential families and write the complete likelihood as follows: \fbox{$\Lcomp[,\varobs](\theta) = \sca{\Phi(\theta) ; S(\varobs,\varlat)}- \psi(\theta)$}. Then, we can write the A-step as : 
+            $$S_{k+1} = (1-u_k) S_k + u_k S(\varobs, \varlat_{k+1})$$
+            
+            The SAEM in the context of the exponential family can be written as follows: 
+            
+            \begin{myAlgorithm}[13cm]
+                \caption{SAEM for exponential family}
+                \Require{ Number of iterations $K\geq 1$ ; $(u_k)_{k\geq 1}$ a sequence of step-size}
+                \Initialize Starting point $\theta_0 \in \setr^d$ ; $S_0 = 0$ ; $H_0 = 0$
+                
+                \For{$k=1$ \KwTo $K$}{
+                    \myBullet[red]\bf{Step S :} \\ 
+                    \quad simulate $\varlat[^{(k)}]$ according to the conditional distribution $f_{\varlat}(\varlat|\varobs, \theta_k)$
+                     \\
+                     \myBullet[red] \bf{Step A :} \\
+                     \quad update $S_{k+1}$ \iffalse and $H_{k+1}$\fi according to a stochastic approximation :
+                        $$S_{k+1} = (1-u_k) S_k + u_k S(\varobs, \varlat_{k+1}) $$
+                        %$$H_{k+1} = (1-u_k) H_k + u_k H(\varobs, \varlat_{k+1}) $$
+                     \\
+                     \myBullet[red] \bf{Step M :} \\
+                     \quad maximization : $\theta_{k+1} = \argmax_{\theta\in\Theta} \left\{\iffalse H_{k+1} +\fi \sca{ \Phi(\theta) ; S_{k+1}} - \psi(\theta) \right\}$
+                }
+                 \Return{$\hat \theta = \theta_K$}
+            \end{myAlgorithm}
+            
+            Where $(u_k)_{k\geq 1}$ is a step-size sequence such that $\forall k \in \setn, u_k \in [0,1], \som k1\infty u_k= \infty$ and $\som k1\infty u_k^2< \infty$.
+            
+            
+
+        \subsubsection{Adding gradient descent in maximization step}
+
+We assume that we can have, on the one hand, real parameters and, on the other hand, high dimensional parameters in $\theta$. These last ones require a particular attention during the maximization that we wish to obtain by gradient descent. We denote by $\nu$ the parameters whose maximization is explicit and by $\beta$ for the others : $\theta = (\nu, \beta)\in V \times B = \Theta \subset\setr^{d+p}$.
+
+
+To handle the high dimension we want to optimize the penalized likelihood as follows: 
+    $$\hat \theta = (\hat\nu, \hat\beta) = \argmax_{\nu, \beta \in V \times B}\Lmarg[,\varobs] (\nu,\beta) - pen(\beta)$$
+
+Where $pen$ might be the LASSO penalty $pen(\beta) = \lambda \norm\beta_1$ with $\lambda$ a regularization parameter to be determined. We propose to compute the maximization step of the SAEM by performing a \textbf{two-step maximization}. We first calculate the explicit maxima over $\nu$ with $\beta$ fixed equal to $\beta_k$ :
+
+    $$\nu_{k+1} = \argmax_{\nu\in V}\left\{\sca{ \Phi(\nu,\beta_k) ; S_{k+1}} - \psi(\nu, \beta_k) \right\}$$ 
+
+Then, using a specific method, we compute the maximization over the high-dimensional parameter $\beta$ with $\nu$ being fixed equal to the updated value $\nu_{k+1}$ as : 
+    $$\beta_{k+1} = \argmax_{\beta\in B}\ub{\big\{\sca{ \Phi(\nu_{k+1},\beta) ; S_{k+1}} - \psi(\nu_{k+1}, \beta)}_{=Q_{k+1}(\beta)} - pen(\beta)\big\}$$
+
+This last step is achieve with a proximal gradient descent as follow : 
+
+\begin{myAlgorithm}[12cm]
+    \caption{Proximal Normalized Gradient Descent}\label{PNGD}
+    \Require{Number of iterations $K_{grad}\geq 1$, a function to optimize $Q$}
+    \Initialize $\beta_0 \in \setr^p$ a starting point
+    
+    \For{$k=1$ \KwTo $K_{grad}$}{
+        $\omega_k \leftarrow \beta_{k-1} - \gamma_k \frac{\nabla Q(\beta_{k-1})}{\norm{\nabla Q(\beta_{k-1})}_2}$
+        
+        $\beta_k \leftarrow prox_{\gamma_kpen}(\omega_k)$
+    }
+     \Return{$\beta_{K_{grad}}$}
+\end{myAlgorithm}
+
+The SAEM become the following Stochastic Approximation Expectation Gradient Descent Maximization 
+
+
+\begin{myAlgorithm}[13cm]
+    \caption{SAEGDM }\label{SARGDM}
+    \Require{Number of iterations $K\geq 1$ ; $(u_k)_{k\geq 1}$ a sequence of step-size}
+    \Initialize Starting point $\theta_0 \in \setr^d$ ; $S_0 = 0$ ; $H_0 = 0$
+    
+    \For{$k=1$ \KwTo $K$}{
+        \myBullet[red]\bf{Step S :} \\ 
+        \quad simulate $\varlat[^{(k)}]$ according to the conditional distribution $f_{\varlat}(\varlat|\varobs, \theta_k)$
+         \\
+         \myBullet[red] \bf{Step A :} \\
+         \quad update $S_{k+1}$ and $H_{k+1}$ according to a stochastic approximation :
+            $$S_{k+1} = (1-u_k) S_k + u_k S(\varobs, \varlat_{k+1}) $$
+            %$$H_{k+1} = (1-u_k) H_k + u_k H(\varobs, \varlat_{k+1}) $$
+         \\
+         \myBullet[red] \bf{Step M :} \\
+         \quad \myBullet[blue] maximization : $\nu_{k+1} = \argmax_{\nu\in V}\left\{\sca{ \Phi(\nu,\beta_k) ; S_{k+1}} - \psi(\nu, \beta_k) \right\}$
+         
+         \quad \myBullet[blue] gradient descent on $Q_{k+1}$: $$\beta_{k+1} = \argmax_{\beta\in B}\big\{\ub{\sca{ \Phi(\nu_{k+1},\beta) ; S_{k+1}} - \psi(\nu_{k+1}, \beta)}_{=Q_{k+1}(\beta)}- pen(\beta)\big\} $$
+    }
+     \Return{$\hat \theta = (\hat\nu,\hat\beta) = (\nu_K,\beta_K)$}
+\end{myAlgorithm}
+
+
+\end{myAppendix}
+
+
+
+
+
+
+
+
+
+
 \end{document}
