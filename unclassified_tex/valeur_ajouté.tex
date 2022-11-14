@@ -1,0 +1,76 @@
+\documentclass[a4paper]{article}
+\usepackage[boxedEnv, titleFormat]{myBelovedPackage}
+
+\loadbiblatex[citestyle = authoryear]{references.bib}
+
+
+\margin{3cm}{4cm}
+\input{notation}
+
+% === Couleur === %
+\setmyColor[ blue = {0, 0, 255},
+             violet = {163, 73, 164},
+             fg = {0, 163, 166}]
+
+\xdefinecolor{inraeRed}{RGB}{237, 110, 108}
+\xdefinecolor{inraeBlue}{RGB}{66, 48, 137}
+\xdefinecolor{inraeCyan}{RGB}{0, 163, 166}
+\xdefinecolor{inraeGreen}{RGB}{157, 197, 68}
+
+\newcommand{\inrae}[1]{\tc{inraeCyan}{\bf{#1}}}
+\newcommand{\known}[1]{ \tc{BrickRed}{#1}}
+
+\newcommand{\by}[1]{\textbf{[#1]}}
+
+
+% === enumerate === %
+\newenvironment{myEnumerate}[2][white]{
+    \setlist[enumerate]{%wide=0pt,
+                        %labelsep=0.5em,
+                        font=\large\color{#1}}
+    
+    \setlist[enumerate,1]{label = \colorbox{#2}{\makebox[0.75em][c]{\arabic*}}}
+    \setlist[enumerate,2]{label = \colorbox{#2}{\makebox[0.75em][c]{\alph*}}}
+    \setlist[enumerate,3]{label = \colorbox{#2}{\makebox[0.75em][c]{\roman*}}}
+
+    \begin{enumerate}
+    }{ \end{enumerate} }
+
+\makeatletter
+\newif\if@ShareVersion 
+\@ShareVersiontrue
+\@ShareVersionfalse
+
+\newcommand{\remark}[1]{\if@ShareVersion \else \tc{inraeRed}{#1} \fi}
+\newcommand{\myRemarks}[1]{
+    \if@ShareVersion \else 
+        { 
+            \color{inraeRed}
+            \begin{myEnumerate}{inraeRed}
+                #1
+            \end{myEnumerate}
+        }
+    \fi}
+\makeatother
+
+\begin{document} 
+\begin{myText}\centering
+
+{\Large Valeur ajoutée du stage :}
+
+\vspace{2cm}
+
+\begin{myEnumerate}{inraeCyan}
+    \item Application de la méthode de \cite{fort_stochastic_2017}
+    \item Contexte de selection de variable dans un model joint (réelle plus value par rapport à \cite{}
+  \item Bilbio sur l'aspect spatiale : \by{Discution}
+      \begin{myEnumerate}{inraeBlue}
+        \item plus qu'uniquement rajouter une variable latente pour précisé le spatiale
+      \end{myEnumerate}
+
+
+
+\end{myEnumerate}
+
+\end{myText}
+\end{document}
