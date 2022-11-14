@@ -262,7 +262,7 @@ where $\nabla_1$ denotes the gradient operator according to the first variable, 
         Q(\theta|\theta') 
            & \geq Q(\theta'|\theta') + \sca{\nabla_1 Q(\theta', \theta') ; \theta-\theta'} + \frac 12 (\theta-\theta')^T \ub{\nabla_1 ^2 Q(\theta'|\theta')}_{\geq -L} (\theta-\theta')
         \\ & \geq Q(\theta'|\theta') + \sca{\nabla_1 Q(\theta', \theta') ; \theta-\theta'} - \frac L2 \norm{\theta-\theta'}^2
-        \intertext{We conclude using the inequality : $2\sca{b,a} - \norm a^2 = \norm b^2 - \norm{a-b}^2$ with $a = \sqrt L(\theta-\theta')$ and $b = \frac 1{\sqrt L} \nabla Q(\theta'|\theta')$ }
+        \intertext{We conclude using the equality : $2\sca{b,a} - \norm a^2 = \norm b^2 - \norm{a-b}^2$ with $a = \sqrt L(\theta-\theta')$ and $b = \frac 1{\sqrt L} \nabla Q(\theta'|\theta')$ }
          Q(\theta|\theta')  & \geq Q(\theta'|\theta') + \frac 1{2L} \norm{\nabla_1 Q(\theta'|\theta')}^2 - \frac L2\norm{\frac 1L \nabla_1 Q(\theta'|\theta') + \theta - \theta'}^2
     \end{align*}
 
