@@ -62,12 +62,31 @@
 
 \begin{myEnumerate}{inraeCyan}
     \item Application de la méthode de \cite{fort_stochastic_2017}
-    \item Contexte de selection de variable dans un model joint (réelle plus value par rapport à \cite{}
-  \item Bilbio sur l'aspect spatiale : \by{Discution}
+    \item Contexte de selection de variable dans un model joint (réelle plus value par rapport à \cite{he_simultaneous_2015})
+
       \begin{myEnumerate}{inraeBlue}
-        \item plus qu'uniquement rajouter une variable latente pour précisé le spatiale
+        \item Apporté un travail d'analyse de paramètre de régularisation
       \end{myEnumerate}
 
+    \item Travaille réalisé dans des articles
+    \begin{myEnumerate}{inraeBlue}
+        \item \cite{he_simultaneous_2015}
+        \myRemarks{
+            \item $\argmax \frac 1n\ell(\theta) - p(\theta)$
+            \item penalization : elacstic net penlaty (lasso)
+            \item simulation study : Linear mixed model with latent variables (p=8)
+        }
+        \item \cite{fort_stochastic_2017}
+        \myRemarks{
+            \item $\argmax \{\ell(\theta)-g(\theta)\}$
+            \item Descente de gradien proximale dans un EM/SAEM
+            \item penalization : elacstic net penlaty (lasso)
+            \item simulation study : Linear mixed model with latent variables (p=300) and non linear model (p=300)
+            \item application on real data w(p = 264)
+            \item best regularization parameter chosen with a data driven approach based on the EBIC creteria (on 40 different value)
+        }
+
+    \end{myEnumerate}
 
 
 \end{myEnumerate}
